@@ -1,0 +1,29 @@
+{
+  "name": "slack-trustpilot",
+  "version": "1.0.0",
+  "description": "Slack+Trustpilot integration",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Trustpilot",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "botkit": "^0.2.2",
+    "moment": "^2.13.0",
+    "request": "^2.72.0",
+    "request-promise": "^3.0.0",
+    "underscore": "^1.8.3",
+    "underscore.string": "^3.3.4"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-jshint": "^2.0.1",
+    "jshint": "^2.9.2",
+    "localtunnel": "^1.8.1"
+  },
+  "engines": {
+    "node": "4.3.2"
+  }
+}
