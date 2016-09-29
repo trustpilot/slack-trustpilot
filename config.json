@@ -3,6 +3,8 @@
         "Paste_your_Slack_client_ID_here",
     "SLACK_SECRET" :
         "Paste_your_Slack_secret_here",
+    "VERIFICATION_TOKEN" :
+        "Paste_your_Slack_verification_token_here",
     "API_KEY" :
         "Paste_your_Trustpilot_API_key_here",
     "API_SECRET" :
@@ -14,5 +16,11 @@
     "BUSINESS_USER_PASS" :
         "Enter_your_Trustpilot_business_user_password_here",
     "BUSINESS_UNIT_ID" :
-        "Enter_your_Trustpilot_business_unit_ID_here"
+        "Enter_your_Trustpilot_business_unit_ID_here",
+    "MULTI_TEAM" :
+        false,
+    "MONGO_URL" :
+        "",
+    "SYSTEM_OAUTH_ENDPOINT" :
+        ""
 }
