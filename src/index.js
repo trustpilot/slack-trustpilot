@@ -20,7 +20,8 @@ if (!SLACK_CLIENT_ID || !SLACK_SECRET) {
 }
 
 var botkit = require("botkit");
-var trustpilot = require(path.resolve(__dirname, "./trustpilot.js"))(config);
+var tokenRequest = require(path.resolve(__dirname, "./" + config.TOKEN_REQUEST_SOURCE))(config);
+var trustpilot = require(path.resolve(__dirname, "./trustpilot.js"))(config, tokenRequest);
 var businessUnitProvider = require(path.resolve(__dirname, "./business-unit-provider.js"))(config);
 
 var controller = botkit.slackbot({

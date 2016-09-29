@@ -17,10 +17,10 @@
         "Enter_your_Trustpilot_business_user_password_here",
     "BUSINESS_UNIT_ID" :
         "Enter_your_Trustpilot_business_unit_ID_here",
+    "TOKEN_REQUEST_SOURCE" :
+        "business-user-token-request.js",
     "MULTI_TEAM" :
         false,
     "MONGO_URL" :
-        "",
-    "SYSTEM_TOKEN_ENDPOINT" :
         ""
 }

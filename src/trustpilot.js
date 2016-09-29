@@ -11,7 +11,7 @@ function autoParse(body, response) {
     }
 }
 
-module.exports = function(config) {
+module.exports = function(config, tokenRequest) {
     const API_KEY            = config.API_KEY;
     const API_SECRET         = config.API_SECRET;
     const API_TOKEN          = config.API_TOKEN;
@@ -33,47 +33,7 @@ module.exports = function(config) {
             }
         });
 
-        var getSystemTokenPromise = function() {
-            return requestWithApiKey({
-                method: "POST",
-                uri : config.SYSTEM_TOKEN_ENDPOINT,
-                auth : {
-                    "user" : API_KEY,
-                    "pass" : API_SECRET
-                },
-                form : {
-                    "grant_type": "client_credentials"
-                }
-            });
-        };
-
-        var getBusinessUserTokenPromise = function() {
-            return requestWithApiKey({
-                method: "GET",
-                uri : "/v1/oauth/oauth-business-users-for-applications/accesstoken",
-                auth : {
-                    "user" : API_KEY,
-                    "pass" : API_SECRET
-                },
-                form : {
-                    "grant_type": "password",
-                    "username": BUSINESS_USER_NAME,
-                    "password": BUSINESS_USER_PASS
-                }
-            });
-        };
-
-        var tokenPromise;
-
-        if (config.MULTI_TEAM) {
-            tokenPromise = getSystemTokenPromise();
-        } else {
-            tokenPromise = getBusinessUserTokenPromise();
-        }
-
-        tokenPromise = tokenPromise.then(function(data) {
-            return data.access_token;
-        }).catch(function() {
+        var tokenPromise = requestWithApiKey(tokenRequest).catch(function() {
             console.error("Something went wrong when setting up access to the Trustpilot APIs. Please check your API key and secret.");
         });
 
@@ -82,9 +42,9 @@ module.exports = function(config) {
         }
 
         function privateRequest(options) {
-            return tokenPromise.then(function(token) {
+            return tokenPromise.then(function(data) {
                 options.auth = {
-                    bearer: token
+                    bearer: data.access_token
                 };
                 return requestWithApiKey(options);
             });
