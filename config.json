@@ -21,6 +21,6 @@
         false,
     "MONGO_URL" :
         "",
-    "SYSTEM_OAUTH_ENDPOINT" :
+    "SYSTEM_TOKEN_ENDPOINT" :
         ""
 }

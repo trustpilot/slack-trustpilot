@@ -36,7 +36,7 @@ module.exports = function(config) {
         var getSystemTokenPromise = function() {
             return requestWithApiKey({
                 method: "POST",
-                uri : config.SYSTEM_OAUTH_ENDPOINT,
+                uri : config.SYSTEM_TOKEN_ENDPOINT,
                 auth : {
                     "user" : API_KEY,
                     "pass" : API_SECRET
