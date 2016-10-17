@@ -17,10 +17,10 @@ module.exports = function(config) {
         return {
             getTeamBusinessUnitId : function(slackTeamName) {
                 return connection.then(function(db) {
-                    var collection = db.collection("teams");
+                    var collection = db.collection("hostedslackapps");
                     bluebird.promisifyAll(collection);
 
-                    return collection.findOneAsync({ id : slackTeamName }).then(function(item) {
+                    return collection.findOneAsync({ slackTeamName : slackTeamName }).then(function(item) {
                         return item.businessUnitId;
                     });
                 });
