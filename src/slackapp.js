@@ -155,8 +155,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         replyStepMessage.attachments[0].actions = null;
         bot.replyInteractive(message, replyStepMessage);
 
-        bot.reply(message, {
-            "text": "Please write your reply below this message, in as many lines as you need. Hit the \"Send reply\" button when you're done.",
+        bot.replyInThread(replyStepMessage, {
+            "text": "Please write your reply in this thread, in as many lines as you need. Hit the \"Send reply\" button when you're done.",
             "attachments": [{
                 "callback_id": reviewId,
                 "attachment_type": "default",
@@ -178,7 +178,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var tracker = getReplyTracker(reviewId);
         if (!tracker) return;
 
-        collectUserMessages(bot, message.user, currentChannel, tracker.start, message.action_ts).then(function (fullText) {
+        collectUserMessages(bot, message.user, currentChannel, tracker.start, message.action_ts, tracker.reviewMessageTs).then(function (fullText) {
             if (fullText) {
                 trustpilot.replyToReview(reviewId, fullText).then(function () {
                     bot.api.chat.update({
@@ -196,7 +196,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     }
 
-    function collectUserMessages(bot, user, channel, start, end) {
+    function collectUserMessages(bot, user, channel, start, end, thread_ts) {
         bluebird.promisifyAll(bot.api.channels);
 
         return bot.api.channels.historyAsync({
@@ -208,7 +208,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         }).then(function (data) {
             if (data && data.hasOwnProperty("messages")) {
                 var fullText = data.messages.filter(function (message) {
-                        return message.user === user;
+                        return message.user === user && message.thread_ts === thread_ts;
                     })
                     .reverse()
                     .map(function (message) {
