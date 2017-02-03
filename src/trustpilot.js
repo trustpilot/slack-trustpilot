@@ -83,6 +83,10 @@ module.exports = function (config, tokenRequest) {
                     method: "GET",
                     uri: `/v1/private/business-units/${businessUnitId}/reviews`,
                     qs: params
+                }).then(function (data) {
+                    if (data.reviews.length > 0) {
+                        return data.reviews[0];
+                    }
                 });
             },
 

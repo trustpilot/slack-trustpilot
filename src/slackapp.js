@@ -71,8 +71,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var slackTeamName = bot.team_info.domain;
 
         businessUnitProvider.getTeamBusinessUnitId(slackTeamName).then(function (businessUnitId) {
-            trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (data) {
-                var lastReview = data.reviews[0];
+            trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
                 if (lastReview) {
                     bot.reply(message, formatReview(lastReview));
                 }
@@ -102,12 +101,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var reviewMoment = moment(review.createdAt);
         var color = (review.stars >= 4) ? "good" :
             (review.stars <= 2) ? "danger" : "warning";
-        var link = review.links.filter(function (link) {
-            return link.rel === "reviews";
-        })[0].href;
-        var author_link = review.consumer.links.filter(function (link) {
-            return link.rel === "consumers";
-        })[0].href;
 
         return {
             "text": "",
@@ -116,9 +109,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
                 "attachment_type": "default",
                 "fallback": "",
                 "author_name": review.consumer.displayName,
-                "author_link": author_link,
                 "title": review.title,
-                "title_link": link,
                 "text": review.text,
                 "color": color,
                 "footer": stars,
