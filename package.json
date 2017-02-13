@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.4.6",
-    "botkit": "^0.2.2",
+    "botkit": "^0.4.10",
     "moment": "^2.13.0",
     "request": "^2.72.0",
     "request-promise": "^3.0.0",
