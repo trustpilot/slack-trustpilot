@@ -66,8 +66,9 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     });
 
-    slackapp.hears(["[1-5] stars?"], ["direct_mention"], function (bot, message) {
-        var nbStars = message.text.split(" ")[0];
+    slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], function (bot, message) {
+        var nbStars = Number(message.text.split(" ")[0]);
+        nbStars = isNaN(nbStars) ? null : nbStars;
         var slackTeamName = bot.team_info.domain;
 
         businessUnitProvider.getTeamBusinessUnitId(slackTeamName).then(function (businessUnitId) {
@@ -193,7 +194,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
             bot.api.channels.replies = function(options, cb) {
                 bot.api.callAPI("channels.replies", options, cb);
             };
-    }
+        }
 
         bluebird.promisifyAll(bot.api.channels);
 
