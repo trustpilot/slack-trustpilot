@@ -178,7 +178,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var tracker = getReplyTracker(reviewId);
         if (!tracker) return;
 
-        collectUserMessages(bot, message.user, currentChannel, tracker.start, message.action_ts, tracker.reviewMessageTs).then(function (fullText) {
+        collectUserMessages(bot, message.user, currentChannel, tracker.reviewMessageTs).then(function (fullText) {
             if (fullText) {
                 trustpilot.replyToReview(reviewId, fullText).then(function () {
                     bot.api.chat.update({
@@ -196,19 +196,24 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     }
 
-    function collectUserMessages(bot, user, channel, start, end, thread_ts) {
+    function collectUserMessages(bot, user, channel, thread_ts) {
+        // Temporary shim for channels.replies while waiting for upstream support
+        if (!bot.api.channels.replies) {
+            bot.api.channels.replies = function(options, cb) {
+                bot.api.callAPI("channels.replies", options, cb);
+            };
+    }
+
         bluebird.promisifyAll(bot.api.channels);
 
-        return bot.api.channels.historyAsync({
+        return bot.api.channels.repliesAsync({
             token: bot.config.incoming_webhook.token,
             channel: channel,
-            oldest: start,
-            latest: end,
-            inclusive: 0
+            thread_ts: thread_ts
         }).then(function (data) {
             if (data && data.hasOwnProperty("messages")) {
                 var fullText = data.messages.filter(function (message) {
-                        return message.user === user && message.thread_ts === thread_ts;
+                        return message.user === user;
                     })
                     .reverse()
                     .map(function (message) {
