@@ -8,8 +8,8 @@ const bluebird = require("bluebird");
 
 module.exports = function(config, businessUnitProvider, trustpilot) {
     var slackapp = botkit.slackbot({
-        // interactive_replies: true, // tells botkit to send button clicks into conversations
-        debug: false
+        debug: false,
+        retry: 2
     });
     setupApp(slackapp, config, businessUnitProvider, trustpilot);
     return slackapp;
