@@ -69,9 +69,9 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], function (bot, message) {
         var nbStars = Number(message.text.split(" ")[0]);
         nbStars = isNaN(nbStars) ? null : nbStars;
-        var slackTeamName = bot.team_info.domain;
+        var slackTeamId = bot.team_info.id;
 
-        businessUnitProvider.getTeamBusinessUnitId(slackTeamName).then(function (businessUnitId) {
+        businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
             trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
                 if (lastReview) {
                     bot.reply(message, formatReview(lastReview));
