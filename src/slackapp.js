@@ -207,7 +207,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
                 var fullText = data.messages.filter(function (message) {
                         return message.user === user;
                     })
-                    .reverse()
                     .map(function (message) {
                         return message.text;
                     })
