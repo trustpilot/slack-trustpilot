@@ -189,13 +189,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     }
 
     function collectUserMessages(bot, user, channel, thread_ts) {
-        // Temporary shim for channels.replies while waiting for upstream support
-        if (!bot.api.channels.replies) {
-            bot.api.channels.replies = function(options, cb) {
-                bot.api.callAPI("channels.replies", options, cb);
-            };
-        }
-
         bluebird.promisifyAll(bot.api.channels);
 
         return bot.api.channels.repliesAsync({
