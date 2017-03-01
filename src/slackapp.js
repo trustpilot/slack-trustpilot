@@ -92,6 +92,24 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         }
     });
 
+    /*
+        Incoming webhook plumbing
+    */
+    slackapp.findBot = function (businessUnitId) {
+        return _.find(_bots, function (bot) {
+            return bot.team_info.businessUnitId === businessUnitId;
+        });
+    };
+
+    slackapp.postNewReview = function (businessUnitId, review) {
+        var bot = slackapp.findBot(businessUnitId);
+        if (bot) {
+            var message = formatReview(review);
+            message.username = bot.config.bot.name; // Confusing, but such is life
+            message.channel = bot.config.incoming_webhook.channel;
+            bot.send(message);
+        }
+    };
 
     /*
         Internal workings
