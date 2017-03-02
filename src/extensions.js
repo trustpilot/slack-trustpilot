@@ -2,13 +2,13 @@ var localtunnel = require("localtunnel");
 
 module.exports = function (slackapp, port) {
     if (process.env.ENABLE_LOCAL_TUNNEL) {
-        localtunnel(port, function (err, tunnel) {
+        localtunnel(port, (err, tunnel) => {
             if (err) {
                 throw err;
             }
             console.log("Tunnel started at", tunnel.url);
 
-            tunnel.on("close", function () {
+            tunnel.on("close", () => {
                 console.error("Your tunnel was closed.");
                 process.exit();
             });
@@ -16,11 +16,11 @@ module.exports = function (slackapp, port) {
     }
 
     // Custom endpoint for External Webhooks from Trustpilot
-    slackapp.webserver.post("/incoming-webhooks", function (req, res) {
+    slackapp.webserver.post("/incoming-webhooks", (req, res) => {
         var events = req.body.events;
-        events.filter(function (e) {
+        events.filter((e) => {
             return e.eventName === "service review created";
-        }).forEach(function (e) {
+        }).forEach((e) => {
             e.eventData.consumer.displayName = e.eventData.consumer.name; // Massaging into expected format
             slackapp.postNewReview(e.eventData);
         });

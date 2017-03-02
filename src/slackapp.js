@@ -6,7 +6,7 @@ const _S = require("underscore.string");
 const moment = require("moment");
 const bluebird = require("bluebird");
 
-module.exports = function(config, businessUnitProvider, trustpilot) {
+module.exports = function (config, businessUnitProvider, trustpilot) {
     var slackapp = botkit.slackbot({
         debug: false,
         retry: 2
@@ -27,7 +27,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         scopes: ["bot", "channels:history", "incoming-webhook"]
     });
 
-    slackapp.on("tick", function () {});
+    slackapp.on("tick", () => {});
 
     // just a simple way to make sure we don't
     // connect to the RTM twice for the same team
@@ -37,21 +37,21 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         _bots[bot.config.token] = bot;
     }
 
-    slackapp.on("create_bot", function (bot, config) {
+    slackapp.on("create_bot", (bot, config) => {
         if (_bots[bot.config.token]) {
             // already online! do nothing.
             return;
         }
         bluebird.promisifyAll(bot);
 
-        bot.startRTMAsync().then(function () {
+        bot.startRTMAsync().then(() => {
             trackBot(bot);
-            businessUnitProvider.getTeamBusinessUnitId(bot.team_info.id).then(function (businessUnitId) {
+            businessUnitProvider.getTeamBusinessUnitId(bot.team_info.id).then((businessUnitId) => {
                 bot.team_info.businessUnitId = businessUnitId;
             });
             bot.startPrivateConversationAsync({
                 user: config.createdBy
-            }).then(function (convo) {
+            }).then((convo) => {
                 convo.say("I am a bot that has just joined your team");
                 convo.say("You must now /invite me to a channel so that I can be of use!");
             });
@@ -63,32 +63,34 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         Entry points
     */
 
-    slackapp.hears([".*"], ["direct_message"], function (bot, message) {
+    slackapp.hears([".*"], ["direct_message"], (bot, message) => {
         bot.reply(message, {
             text: "I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way). Use one of your existing channels or create a new one, it's up to you!"
         });
     });
 
-    slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], function (bot, message) {
+    slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], (bot, message) => {
         var nbStars = Number(message.text.split(" ")[0]);
         nbStars = isNaN(nbStars) ? null : nbStars;
 
-        trustpilot.getLastUnansweredReview(nbStars, bot.team_info.businessUnitId).then(function (lastReview) {
+        trustpilot.getLastUnansweredReview(nbStars, bot.team_info.businessUnitId).then((lastReview) => {
             if (lastReview) {
                 bot.reply(message, formatReview(lastReview));
             }
         });
     });
 
-    slackapp.on("interactive_message_callback", function (bot, message) {
-        if (message.token != config.VERIFICATION_TOKEN) return;
+    slackapp.on("interactive_message_callback", (bot, message) => {
+        if (message.token !== config.VERIFICATION_TOKEN) {
+            return;
+        }
         switch (message.actions[0].value) {
-            case "step_1_write_reply":
-                askForReply(bot, message);
-                break;
-            case "step_2_send_reply":
-                handleReply(bot, message);
-                break;
+        case "step_1_write_reply":
+            askForReply(bot, message);
+            break;
+        case "step_2_send_reply":
+            handleReply(bot, message);
+            break;
         }
     });
 
@@ -96,7 +98,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         Incoming webhook plumbing
     */
     slackapp.findBot = function (businessUnitId) {
-        return _.find(_bots, function (bot) {
+        return _.find(_bots, (bot) => {
             return bot.team_info.businessUnitId === businessUnitId;
         });
     };
@@ -137,7 +139,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
                     "name": "step_1_write_reply",
                     "text": ":writing_hand: Reply",
                     "value": "step_1_write_reply",
-                    "type": "button",
+                    "type": "button"
                 }]
             }]
         };
@@ -186,11 +188,13 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var ts = message.original_message.ts;
         var reviewId = message.original_message.attachments[0].callback_id;
         var tracker = getReplyTracker(reviewId);
-        if (!tracker) return;
+        if (!tracker) {
+            return;
+        }
 
-        collectUserMessages(bot, message.user, currentChannel, tracker.reviewMessageTs).then(function (fullText) {
+        collectUserMessages(bot, message.user, currentChannel, tracker.reviewMessageTs).then((fullText) => {
             if (fullText) {
-                trustpilot.replyToReview(reviewId, fullText).then(function () {
+                trustpilot.replyToReview(reviewId, fullText).then(() => {
                     bot.api.chat.update({
                         ts: tracker.reviewMessageTs,
                         channel: currentChannel,
@@ -206,24 +210,25 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     }
 
-    function collectUserMessages(bot, user, channel, thread_ts) {
+    function collectUserMessages(bot, user, channel, threadTs) {
         bluebird.promisifyAll(bot.api.channels);
 
         return bot.api.channels.repliesAsync({
-            token: bot.config.incoming_webhook.token,
-            channel: channel,
-            thread_ts: thread_ts
-        }).then(function (data) {
+            "token": bot.config.incoming_webhook.token,
+            "channel": channel,
+            "thread_ts": threadTs
+        }).then((data) => {
             if (data && data.hasOwnProperty("messages")) {
-                var fullText = data.messages.filter(function (message) {
-                        return message.user === user;
-                    })
-                    .map(function (message) {
-                        return message.text;
-                    })
-                    .join("\n");
+                var fullText = data.messages.filter((message) => {
+                    return message.user === user;
+                })
+                .map((message) => {
+                    return message.text;
+                })
+                .join("\n");
                 return fullText;
             }
+            return null;
         });
     }
 }

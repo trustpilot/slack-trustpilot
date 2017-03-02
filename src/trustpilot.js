@@ -12,11 +12,7 @@ function autoParse(body, response) {
 
 module.exports = function (config, tokenRequest) {
     const API_KEY = config.API_KEY;
-    const API_SECRET = config.API_SECRET;
-    const API_TOKEN = config.API_TOKEN;
     const API_HOST = config.API_HOST;
-    const BUSINESS_USER_NAME = config.BUSINESS_USER_NAME;
-    const BUSINESS_USER_PASS = config.BUSINESS_USER_PASS;
     const BUSINESS_UNIT_ID = config.BUSINESS_UNIT_ID;
 
     var baseRequest = requestPromise.defaults({
@@ -30,7 +26,7 @@ module.exports = function (config, tokenRequest) {
         }
     });
 
-    var ApiBridge = (function () {
+    var ApiBridge = (() => {
         var authorization;
 
         function isAuthValid() {
@@ -51,17 +47,17 @@ module.exports = function (config, tokenRequest) {
             if (isAuthValid()) {
                 return global.Promise.resolve(authorization);
             } else {
-                return requestWithApiKey(tokenRequest).then(function (data) {
+                return requestWithApiKey(tokenRequest).then((data) => {
                     authorization = data;
                     return authorization;
-                }).catch(function () {
+                }).catch(() => {
                     console.error("Something went wrong when setting up access to the Trustpilot APIs. Please check your API key and secret.");
                 });
             }
         }
 
         function privateRequest(options) {
-            return getFreshToken().then(function (data) {
+            return getFreshToken().then((data) => {
                 options.auth = {
                     bearer: data.access_token
                 };
@@ -83,10 +79,11 @@ module.exports = function (config, tokenRequest) {
                     method: "GET",
                     uri: `/v1/private/business-units/${businessUnitId}/reviews`,
                     qs: params
-                }).then(function (data) {
+                }).then((data) => {
                     if (data.reviews.length > 0) {
                         return data.reviews[0];
                     }
+                    return null;
                 });
             },
 
