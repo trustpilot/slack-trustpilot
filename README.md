@@ -2,7 +2,7 @@
 
 This app enables anyone in your Slack team to reply to your latest reviews on Trustpilot, straight from a dedicated Slack channel.
 
-Once deployed and authorized on your Slack domain, the app creates a bot user, which you will be able to "@mention" and ask e.g. for the latest "5 stars" review. The latest unanswered review with the given star rating will then be displayed, along with a "Reply" button. Hit it, and the next messages that you write in your channel will all become part of your reply. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
+Once deployed and authorized on your Slack domain, the app creates a bot user, which you will be able to "@mention" and ask e.g. for the latest "5 stars" review. The latest unanswered review with the given star rating will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
 
 It's as easy as demonstrated by these screenshots!
 
