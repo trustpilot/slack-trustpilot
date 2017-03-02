@@ -1,5 +1,5 @@
 var gulp = require('gulp');
-var jshint = require('gulp-jshint');
+var eslint = require('gulp-eslint');
 
 spawn = require('child_process').spawn;
 var node;
@@ -25,8 +25,8 @@ gulp.task('watch', ['lint', 'local'], function () {
 
 gulp.task('lint', function () {
   return gulp.src('src/**/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'));
+    .pipe(eslint())
+    .pipe(eslint.format());
 });
 
 gulp.task('default', ['local']);
