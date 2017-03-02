@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 7142;
 const TOKEN_REQUEST_SOURCE = process.env.TOKEN_REQUEST_SOURCE || "business-user-token-request.js";
 const BUSINESS_UNIT_PROVIDER_SOURCE = process.env.BUSINESS_UNIT_PROVIDER_SOURCE || "business-unit-provider.js";
 const OAUTH_HANDLER_SOURCE = process.env.OAUTH_HANDLER_SOURCE || "oauth-handler.js";
-const WEBSERVER_EXTENSIONS_SOURCE = process.env.WEBSERVER_EXTENSIONS_SOURCE || "tunnel.js";
+const WEBSERVER_EXTENSIONS_SOURCE = process.env.WEBSERVER_EXTENSIONS_SOURCE || "extensions.js";
 
 var tokenRequest = require(path.resolve(__dirname, "./" + TOKEN_REQUEST_SOURCE))(config);
 var businessUnitProvider = require(path.resolve(__dirname, "./" + BUSINESS_UNIT_PROVIDER_SOURCE))(config);

@@ -101,8 +101,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     };
 
-    slackapp.postNewReview = function (businessUnitId, review) {
-        var bot = slackapp.findBot(businessUnitId);
+    slackapp.postNewReview = function (review, businessUnitId) {
+        var bot = slackapp.findBot(businessUnitId || config.BUSINESS_UNIT_ID);
         if (bot) {
             var message = formatReview(review);
             message.username = bot.config.bot.name; // Confusing, but such is life
