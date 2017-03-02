@@ -1,5 +1,10 @@
 {
-    "parserOptions": {
-        "ecmaVersion": 6
-    }
+  "extends": "trustpilot",
+  "rules": {
+      "indent": ["warn", 4],
+      "quotes": ["warn", "double"],
+      "no-console": "off",
+      "max-len": ["warn", { "code": 120, "ignoreStrings": true }],
+      "no-use-before-define": ["error", "nofunc"]
+  }
 }

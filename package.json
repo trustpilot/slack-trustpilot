@@ -19,9 +19,11 @@
     "underscore.string": "^3.3.4"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "eslint-config-trustpilot": "^1.7.0",
+    "eslint-plugin-babel": "^4.1.0",
     "gulp": "^3.9.1",
-    "gulp-jshint": "^2.0.1",
-    "jshint": "^2.9.2",
+    "gulp-eslint": "^3.0.1",
     "localtunnel": "^1.8.1"
   },
   "engines": {
