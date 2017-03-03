@@ -16,13 +16,13 @@ module.exports = function (slackapp, port) {
     }
 
     // Custom endpoint for External Webhooks from Trustpilot
-    slackapp.webserver.post("/incoming-webhooks", (req, res) => {
+    slackapp.webserver.post("/incoming-webhooks/:teamId", (req, res) => {
         var events = req.body.events;
         events.filter((e) => {
             return e.eventName === "service review created";
         }).forEach((e) => {
             e.eventData.consumer.displayName = e.eventData.consumer.name; // Massaging into expected format
-            slackapp.postNewReview(e.eventData);
+            slackapp.postNewReview(e.eventData, req.params.teamId);
         });
         res.sendStatus(200);
     });

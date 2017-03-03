@@ -46,6 +46,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
 
         bot.startRTMAsync().then(() => {
             trackBot(bot);
+            console.info(`Use /incoming-webhooks/${bot.team_info.id} to receive new reviews.`);
+
             bot.startPrivateConversationAsync({
                 user: config.createdBy
             }).then((convo) => {
@@ -97,14 +99,14 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     /*
         Incoming webhook plumbing
     */
-    slackapp.findBot = function (businessUnitId) {
+    slackapp.findBot = function (teamId) {
         return _.find(_bots, (bot) => {
-            return bot.team_info.businessUnitId === businessUnitId;
+            return bot.team_info.id === teamId;
         });
     };
 
-    slackapp.postNewReview = function (review, businessUnitId) {
-        var bot = slackapp.findBot(businessUnitId || config.BUSINESS_UNIT_ID);
+    slackapp.postNewReview = function (review, teamId) {
+        var bot = slackapp.findBot(teamId);
         if (bot) {
             var message = formatReview(review);
             message.username = bot.config.bot.name; // Confusing, but such is life
