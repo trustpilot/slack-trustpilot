@@ -46,9 +46,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
 
         bot.startRTMAsync().then(() => {
             trackBot(bot);
-            businessUnitProvider.getTeamBusinessUnitId(bot.team_info.id).then((businessUnitId) => {
-                bot.team_info.businessUnitId = businessUnitId;
-            });
             bot.startPrivateConversationAsync({
                 user: config.createdBy
             }).then((convo) => {
@@ -72,11 +69,14 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], (bot, message) => {
         var nbStars = Number(message.text.split(" ")[0]);
         nbStars = isNaN(nbStars) ? null : nbStars;
+        var slackTeamId = bot.team_info.id;
 
-        trustpilot.getLastUnansweredReview(nbStars, bot.team_info.businessUnitId).then((lastReview) => {
-            if (lastReview) {
-                bot.reply(message, formatReview(lastReview));
-            }
+        businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
+            trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
+                if (lastReview) {
+                    bot.reply(message, formatReview(lastReview));
+                }
+            });
         });
     });
 
