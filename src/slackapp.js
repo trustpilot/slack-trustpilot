@@ -69,6 +69,12 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     });
 
     slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], (bot, message) => {
+        if (message.thread_ts) {
+            bot.reply(message, {
+                text: "Looks like we're in a thread? I'm confused! I can handle your request if you ask me in a channel."
+            });
+            return;
+        }
         var nbStars = Number(message.text.split(" ")[0]);
         nbStars = isNaN(nbStars) ? null : nbStars;
         var slackTeamId = bot.team_info.id;
