@@ -2,14 +2,6 @@
 
 const requestPromise = require("request-promise");
 
-function autoParse(body, response) {
-    if (response.headers["content-type"] && response.headers["content-type"].indexOf("application/json") === 0) {
-        return JSON.parse(body);
-    } else {
-        return body;
-    }
-}
-
 module.exports = function (config, tokenRequest) {
     const API_KEY = config.API_KEY;
     const API_HOST = config.API_HOST;
@@ -17,7 +9,7 @@ module.exports = function (config, tokenRequest) {
 
     var baseRequest = requestPromise.defaults({
         baseUrl: API_HOST,
-        transform: autoParse
+        json: true
     });
 
     var requestWithApiKey = baseRequest.defaults({
