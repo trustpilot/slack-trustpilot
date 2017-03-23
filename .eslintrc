@@ -1,8 +1,8 @@
 {
   "extends": "trustpilot",
   "rules": {
-      "no-console": "off",
-      "max-len": ["warn", { "code": 120, "ignoreStrings": true }],
-      "no-use-before-define": ["error", "nofunc"]
+    "no-console": "off",
+    "max-len": ["warn", { "code": 120, "ignoreStrings": true }],
+    "no-use-before-define": ["error", "nofunc"]
   }
 }
