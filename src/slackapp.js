@@ -63,7 +63,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
 
   slackapp.hears(['.*'], ['direct_message'], (bot, message) => {
     bot.reply(message, {
-      text: 'I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way). Use one of your existing channels or create a new one, it\'s up to you!'
+      text: `I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way).
+ Use one of your existing channels or create a new one, it's up to you!`
     });
   });
 
@@ -175,7 +176,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     bot.replyInteractive(message, replyStepMessage);
 
     bot.replyInThread(replyStepMessage, {
-      'text': 'Please write your reply in this thread, in as many lines as you need. Hit the \"Send reply\" button when you\'re done.',
+      'text': `Please write your reply in this thread, in as many lines as you need. Hit the "Send reply" button
+ when you're done.`,
       'attachments': [{
         'callback_id': reviewId,
         'attachment_type': 'default',

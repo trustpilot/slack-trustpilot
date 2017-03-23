@@ -43,7 +43,8 @@ module.exports = function (config, tokenRequest) {
           authorization = data;
           return authorization;
         }).catch(() => {
-          console.error('Something went wrong when setting up access to the Trustpilot APIs. Please check your API key and secret.');
+          console.error(`Something went wrong when setting up access to the Trustpilot APIs.
+ Please check your API key and secret.`);
         });
       }
     }
