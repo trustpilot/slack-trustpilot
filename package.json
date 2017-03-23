@@ -2,13 +2,15 @@
   "name": "slack-trustpilot",
   "version": "1.0.0",
   "description": "Slack+Trustpilot integration",
+  "homepage": "https://github.com/trustpilot/slack-trustpilot",
+  "repository": "https://github.com/trustpilot/slack-trustpilot.git",
+  "author": "Trustpilot",
+  "license": "MIT",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "echo \"Warning: no test specified\" && exit 0"
+    "test": "eslint '**/*.js'"
   },
-  "author": "Trustpilot",
-  "license": "MIT",
   "dependencies": {
     "bluebird": "^3.4.6",
     "botkit": "^0.5.1",
