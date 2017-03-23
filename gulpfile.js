@@ -1,11 +1,13 @@
 var gulp = require('gulp');
 var eslint = require('gulp-eslint');
 
-spawn = require('child_process').spawn;
+var spawn = require('child_process').spawn;
 var node;
 
 gulp.task('local', function () {
-  if (node) node.kill();
+  if (node) {
+    node.kill();
+  }
   var env = Object.create(process.env);
   env.ENABLE_LOCAL_TUNNEL = 'true';
   node = spawn('node', ['src/index.js'], {
