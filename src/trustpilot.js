@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-const requestPromise = require("request-promise");
+const requestPromise = require('request-promise');
 
 module.exports = function (config, tokenRequest) {
     const API_KEY = config.API_KEY;
@@ -14,7 +14,7 @@ module.exports = function (config, tokenRequest) {
 
     var requestWithApiKey = baseRequest.defaults({
         headers: {
-            "apikey": API_KEY
+            'apikey': API_KEY
         }
     });
 
@@ -43,7 +43,7 @@ module.exports = function (config, tokenRequest) {
                     authorization = data;
                     return authorization;
                 }).catch(() => {
-                    console.error("Something went wrong when setting up access to the Trustpilot APIs. Please check your API key and secret.");
+                    console.error('Something went wrong when setting up access to the Trustpilot APIs. Please check your API key and secret.');
                 });
             }
         }
@@ -60,7 +60,7 @@ module.exports = function (config, tokenRequest) {
         return {
             getLastUnansweredReview: function (stars, businessUnitId) {
                 var params = {
-                    orderBy: "createdat.desc",
+                    orderBy: 'createdat.desc',
                     responded: false
                 };
                 if (stars) {
@@ -68,7 +68,7 @@ module.exports = function (config, tokenRequest) {
                 }
                 businessUnitId = businessUnitId || BUSINESS_UNIT_ID;
                 return privateRequest({
-                    method: "GET",
+                    method: 'GET',
                     uri: `/v1/private/business-units/${businessUnitId}/reviews`,
                     qs: params
                 }).then((data) => {
@@ -81,7 +81,7 @@ module.exports = function (config, tokenRequest) {
 
             replyToReview: function (reviewId, message) {
                 return privateRequest({
-                    method: "POST",
+                    method: 'POST',
                     uri: `/v1/private/reviews/${reviewId}/reply`,
                     form: {
                         message: message

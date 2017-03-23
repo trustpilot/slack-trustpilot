@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
-const botkit = require("botkit");
-const _ = require("underscore");
-const _S = require("underscore.string");
-const moment = require("moment");
-const bluebird = require("bluebird");
+const botkit = require('botkit');
+const _ = require('underscore');
+const _S = require('underscore.string');
+const moment = require('moment');
+const bluebird = require('bluebird');
 
 module.exports = function (config, businessUnitProvider, trustpilot) {
     var slackapp = botkit.slackbot({
@@ -24,10 +24,10 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     slackapp.configureSlackApp({
         clientId: config.SLACK_CLIENT_ID,
         clientSecret: config.SLACK_SECRET,
-        scopes: ["bot", "channels:history", "incoming-webhook"]
+        scopes: ['bot', 'channels:history', 'incoming-webhook']
     });
 
-    slackapp.on("tick", () => {});
+    slackapp.on('tick', () => {});
 
     // just a simple way to make sure we don't
     // connect to the RTM twice for the same team
@@ -37,7 +37,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         _bots[bot.config.token] = bot;
     }
 
-    slackapp.on("create_bot", (bot, config) => {
+    slackapp.on('create_bot', (bot, config) => {
         if (_bots[bot.config.token]) {
             // already online! do nothing.
             return;
@@ -51,8 +51,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
             bot.startPrivateConversationAsync({
                 user: config.createdBy
             }).then((convo) => {
-                convo.say("I am a bot that has just joined your team");
-                convo.say("You must now /invite me to a channel so that I can be of use!");
+                convo.say('I am a bot that has just joined your team');
+                convo.say('You must now /invite me to a channel so that I can be of use!');
             });
         });
     });
@@ -62,20 +62,20 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         Entry points
     */
 
-    slackapp.hears([".*"], ["direct_message"], (bot, message) => {
+    slackapp.hears(['.*'], ['direct_message'], (bot, message) => {
         bot.reply(message, {
-            text: "I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way). Use one of your existing channels or create a new one, it's up to you!"
+            text: 'I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way). Use one of your existing channels or create a new one, it\'s up to you!'
         });
     });
 
-    slackapp.hears(["[1-5] stars?", "la(te)?st"], ["direct_mention"], (bot, message) => {
+    slackapp.hears(['[1-5] stars?', 'la(te)?st'], ['direct_mention'], (bot, message) => {
         if (message.thread_ts) {
             bot.reply(message, {
-                text: "Looks like we're in a thread? I'm confused! I can handle your request if you ask me in a channel."
+                text: 'Looks like we\'re in a thread? I\'m confused! I can handle your request if you ask me in a channel.'
             });
             return;
         }
-        var nbStars = Number(message.text.split(" ")[0]);
+        var nbStars = Number(message.text.split(' ')[0]);
         nbStars = isNaN(nbStars) ? null : nbStars;
         var slackTeamId = bot.team_info.id;
 
@@ -88,15 +88,15 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         });
     });
 
-    slackapp.on("interactive_message_callback", (bot, message) => {
+    slackapp.on('interactive_message_callback', (bot, message) => {
         if (message.token !== config.VERIFICATION_TOKEN) {
             return;
         }
         switch (message.actions[0].value) {
-        case "step_1_write_reply":
+        case 'step_1_write_reply':
             askForReply(bot, message);
             break;
-        case "step_2_send_reply":
+        case 'step_2_send_reply':
             handleReply(bot, message);
             break;
         }
@@ -126,28 +126,28 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     */
 
     function formatReview(review) {
-        var stars = _S.repeat("★", review.stars) + _S.repeat("✩", 5 - review.stars);
+        var stars = _S.repeat('★', review.stars) + _S.repeat('✩', 5 - review.stars);
         var reviewMoment = moment(review.createdAt);
-        var color = (review.stars >= 4) ? "good" :
-            (review.stars <= 2) ? "danger" : "warning";
+        var color = (review.stars >= 4) ? 'good' :
+            (review.stars <= 2) ? 'danger' : 'warning';
 
         return {
-            "text": "",
-            "attachments": [{
-                "callback_id": review.id,
-                "attachment_type": "default",
-                "fallback": "",
-                "author_name": review.consumer.displayName,
-                "title": review.title,
-                "text": review.text,
-                "color": color,
-                "footer": stars,
-                "ts": reviewMoment.format("X"),
-                "actions": [{
-                    "name": "step_1_write_reply",
-                    "text": ":writing_hand: Reply",
-                    "value": "step_1_write_reply",
-                    "type": "button"
+            'text': '',
+            'attachments': [{
+                'callback_id': review.id,
+                'attachment_type': 'default',
+                'fallback': '',
+                'author_name': review.consumer.displayName,
+                'title': review.title,
+                'text': review.text,
+                'color': color,
+                'footer': stars,
+                'ts': reviewMoment.format('X'),
+                'actions': [{
+                    'name': 'step_1_write_reply',
+                    'text': ':writing_hand: Reply',
+                    'value': 'step_1_write_reply',
+                    'type': 'button'
                 }]
             }]
         };
@@ -171,21 +171,21 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         trackReply(reviewId, message);
 
         var replyStepMessage = message.original_message;
-        replyStepMessage.text = "You are replying to";
+        replyStepMessage.text = 'You are replying to';
         replyStepMessage.attachments[0].actions = null;
         bot.replyInteractive(message, replyStepMessage);
 
         bot.replyInThread(replyStepMessage, {
-            "text": "Please write your reply in this thread, in as many lines as you need. Hit the \"Send reply\" button when you're done.",
-            "attachments": [{
-                "callback_id": reviewId,
-                "attachment_type": "default",
-                "text": "",
-                "actions": [{
-                    "name": "step_2_send_reply",
-                    "text": ":postal_horn: Send reply",
-                    "value": "step_2_send_reply",
-                    "type": "button"
+            'text': 'Please write your reply in this thread, in as many lines as you need. Hit the \"Send reply\" button when you\'re done.',
+            'attachments': [{
+                'callback_id': reviewId,
+                'attachment_type': 'default',
+                'text': '',
+                'actions': [{
+                    'name': 'step_2_send_reply',
+                    'text': ':postal_horn: Send reply',
+                    'value': 'step_2_send_reply',
+                    'type': 'button'
                 }]
             }]
         });
@@ -206,7 +206,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
                     bot.api.chat.update({
                         ts: tracker.reviewMessageTs,
                         channel: currentChannel,
-                        text: "You have replied to this review."
+                        text: 'You have replied to this review.'
                     });
                     bot.api.chat.delete({
                         ts: ts,
@@ -222,18 +222,18 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         bluebird.promisifyAll(bot.api.channels);
 
         return bot.api.channels.repliesAsync({
-            "token": bot.config.incoming_webhook.token,
-            "channel": channel,
-            "thread_ts": threadTs
+            'token': bot.config.incoming_webhook.token,
+            'channel': channel,
+            'thread_ts': threadTs
         }).then((data) => {
-            if (data && data.hasOwnProperty("messages")) {
+            if (data && data.hasOwnProperty('messages')) {
                 var fullText = data.messages.filter((message) => {
                     return message.user === user;
                 })
                 .map((message) => {
                     return message.text;
                 })
-                .join("\n");
+                .join('\n');
                 return fullText;
             }
             return null;
