@@ -1,7 +1,6 @@
 {
   "extends": "trustpilot",
   "rules": {
-    "no-console": "off",
-    "no-use-before-define": ["error", "nofunc"]
+    "no-console": "off"
   }
 }
