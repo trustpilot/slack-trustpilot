@@ -5,9 +5,9 @@ to build your own business unit provider and inject it using the BUSINESS_UNIT_P
 environment variable (see index.js)
 */
 module.exports = function (config) {
-    return {
-        getTeamBusinessUnitId: function () {
-            return global.Promise.resolve(config.BUSINESS_UNIT_ID);
-        }
-    };
+  return {
+    getTeamBusinessUnitId: function () {
+      return global.Promise.resolve(config.BUSINESS_UNIT_ID);
+    }
+  };
 };
