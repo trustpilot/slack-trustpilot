@@ -1,7 +1,6 @@
 'use strict';
 
 const botkit = require('botkit');
-const _ = require('underscore');
 const _S = require('underscore.string');
 const moment = require('moment');
 const bluebird = require('bluebird');
@@ -216,20 +215,16 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     Incoming webhook plumbing
   */
 
-  slackapp.findBot = function (teamId) {
-    return _.find(_bots, (bot) => {
-      return bot.team_info.id === teamId;
-    });
-  };
-
   slackapp.postNewReview = function (review, teamId) {
-    var bot = slackapp.findBot(teamId);
-    if (bot) {
+    slackapp.findTeamById(teamId, (err, team) => {
+      if (!err && team) {
+        var bot = slackapp.spawn(team);
       var message = formatReview(review);
       message.username = bot.config.bot.name; // Confusing, but such is life
       message.channel = bot.config.incoming_webhook.channel;
       bot.send(message);
     }
+    });
   };
 }
 
