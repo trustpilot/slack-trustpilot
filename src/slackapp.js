@@ -233,10 +233,12 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
   };
 }
 
-module.exports = function (config, businessUnitProvider, trustpilot) {
+module.exports = function (config, businessUnitProvider, trustpilot, storage) {
   var slackapp = botkit.slackbot({
-    debug: false,
-    retry: 2
+    'debug': false,
+    'storage': storage,
+    'json_file_store': './storage/', // Fallback to jfs when no storage middleware provided
+    'retry': 2
   });
   setupApp(slackapp, config, businessUnitProvider, trustpilot);
   return slackapp;
