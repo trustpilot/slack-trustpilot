@@ -219,11 +219,11 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     slackapp.findTeamById(teamId, (err, team) => {
       if (!err && team) {
         var bot = slackapp.spawn(team);
-      var message = formatReview(review);
-      message.username = bot.config.bot.name; // Confusing, but such is life
-      message.channel = bot.config.incoming_webhook.channel;
-      bot.send(message);
-    }
+        var message = formatReview(review);
+        message.username = bot.config.bot.name; // Confusing, but such is life
+        message.channel = bot.config.incoming_webhook.channel;
+        bot.send(message);
+      }
     });
   };
 }
