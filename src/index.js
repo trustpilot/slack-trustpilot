@@ -20,14 +20,16 @@ const TOKEN_REQUEST_SOURCE = process.env.TOKEN_REQUEST_SOURCE || 'business-user-
 const BUSINESS_UNIT_PROVIDER_SOURCE = process.env.BUSINESS_UNIT_PROVIDER_SOURCE || 'business-unit-provider.js';
 const OAUTH_HANDLER_SOURCE = process.env.OAUTH_HANDLER_SOURCE || 'oauth-handler.js';
 const WEBSERVER_EXTENSIONS_SOURCE = process.env.WEBSERVER_EXTENSIONS_SOURCE || 'extensions.js';
+const STORAGE_MIDDLEWARE_SOURCE = process.env.STORAGE_MIDDLEWARE_SOURCE || 'no-storage.js';
 
 var tokenRequest = require(path.resolve(__dirname, `./${TOKEN_REQUEST_SOURCE}`))(config);
 var businessUnitProvider = require(path.resolve(__dirname, `./${BUSINESS_UNIT_PROVIDER_SOURCE}`))(config);
 var oAuthHandler = require(path.resolve(__dirname, `./${OAUTH_HANDLER_SOURCE}`));
 var serverExtensions = require(path.resolve(__dirname, `./${WEBSERVER_EXTENSIONS_SOURCE}`));
+var storage = require(path.resolve(__dirname, `./${STORAGE_MIDDLEWARE_SOURCE}`));
 
 var trustpilot = require(path.resolve(__dirname, './trustpilot.js'))(config, tokenRequest);
-var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, businessUnitProvider, trustpilot);
+var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, businessUnitProvider, trustpilot, storage);
 
 // Set up a web server to expose oauth and webhook endpoints
 slackapp.setupWebserver(PORT, () => {

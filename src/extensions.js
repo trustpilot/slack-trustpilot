@@ -21,7 +21,7 @@ module.exports = function (slackapp, port) {
     var events = req.body.events;
 
     events.filter((e) => {
-      return e.eventName === 'service review created';
+      return e.eventName === 'service-review-created';
     }).forEach((e) => {
       e.eventData.consumer.displayName = e.eventData.consumer.name; // Massaging into expected format
       slackapp.postNewReview(e.eventData, req.params.teamId);

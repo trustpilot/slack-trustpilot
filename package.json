@@ -14,10 +14,10 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "botkit": "^0.5.1",
+    "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",
     "request": "^2.72.0",
     "request-promise": "^3.0.0",
-    "underscore": "^1.8.3",
     "underscore.string": "^3.3.4"
   },
   "devDependencies": {
