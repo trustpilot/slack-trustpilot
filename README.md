@@ -1,18 +1,18 @@
-# slack-trustpilot: reply to your Trustpilot reviews from Slack
+# slack-trustpilot
 
-This app enables anyone in your Slack team to reply to your latest reviews on Trustpilot, straight from a dedicated Slack channel.
+[![Build Status](https://travis-ci.org/trustpilot/slack-trustpilot.svg?branch=master)](https://travis-ci.org/trustpilot/slack-trustpilot)
 
-Once deployed and authorized on your Slack domain, the app creates a bot user, which you will be able to "@mention" and ask e.g. for the latest "5 stars" review. The latest unanswered review with the given star rating will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
+Reply to your [Trustpilot](https://www.trustpilot.com/) reviews directly via [Slack](https://slack.com/).
+
+Trustpilot also provides a hosted version of this project through [Trustpilot Labs](http://blog.trustpilot.com/blog/integrate-trustpilot-reviews-in-slack-another-api-experiment).<br/>Continue here if you prefer your own API integration or would like to customize it.
+
+## How does it work?
+
+Once deployed and authorized on your Slack domain, the app creates a bot user, which you will be able to `@mention` and ask e.g. for the latest "5 stars" review. The latest unanswered review with the given star rating will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
 
 It's as easy as demonstrated by these screenshots!
 
-![Setup] (https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/setup_and_invite.png)
-
-![Ask] (https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/ask_for_review.png)
-
-![Replying] (https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png)
-
-![Done] (https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png)
+[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/setup_and_invite.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/setup_and_invite.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/ask_for_review.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/ask_for_review.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png)
 
 ## How to set this up
 
@@ -30,28 +30,19 @@ You will also need to get a Verification token for Interactive Messages, to make
 
 ### Configuration
 
-You should now have all the information to configure this app. Just clone this repo and edit the `config.js` file. The contents should be as follows:
+You should now have all the information to configure this app. Just clone this repo and edit the [`config.js`](config.js) file. The contents should be as follows:
 
-```
+```javascript
 module.exports = {
-    "SLACK_CLIENT_ID" :
-        process.env.SLACK_CLIENT_ID || "Paste_your_Slack_client_ID_here",
-    "SLACK_SECRET" :
-        process.env.SLACK_SECRET || "Paste_your_Slack_secret_here",
-    "VERIFICATION_TOKEN" :
-        process.env.VERIFICATION_TOKEN || "Paste_your_Slack_verification_token_here",
-    "API_KEY" :
-        process.env.API_KEY || "Paste_your_Trustpilot_API_key_here",
-    "API_SECRET" :
-        process.env.API_SECRET || "Paste_your_Trustpilot_API_secret_here",
-    "API_HOST" :
-        process.env.API_HOST || "https://api.trustpilot.com",
-    "BUSINESS_USER_NAME" :
-        process.env.BUSINESS_USER_NAME || "Enter_your_Trustpilot_business_user_login_here",
-    "BUSINESS_USER_PASS" :
-        process.env.BUSINESS_USER_PASS || "Enter_your_Trustpilot_business_user_password_here",
-    "BUSINESS_UNIT_ID" :
-        process.env.BUSINESS_UNIT_ID || "Enter_your_Trustpilot_business_unit_ID_here"
+  'SLACK_CLIENT_ID': process.env.SLACK_CLIENT_ID || 'YOUR_SLACK_CLIENT_ID',
+  'SLACK_SECRET': process.env.SLACK_SECRET || 'YOUR_SLACK_SECRET',
+  'VERIFICATION_TOKEN': process.env.VERIFICATION_TOKEN || 'YOUR_VERIFICATION_TOKEN',
+  'API_KEY': process.env.API_KEY || 'YOUR_TRUSTPILOT_API_KEY',
+  'API_SECRET': process.env.API_SECRET || 'YOUR_TRUSTPILOT_API_SECRET',
+  'API_HOST': process.env.API_HOST || 'https://api.trustpilot.com',
+  'BUSINESS_USER_NAME': process.env.BUSINESS_USER_NAME || 'YOUR_TRUSTPILOT_BUSINESS_USER_NAME',
+  'BUSINESS_USER_PASS': process.env.BUSINESS_USER_PASS || 'YOUR_TRUSTPILOT_BUSINESS_USER_PASS',
+  'BUSINESS_UNIT_ID': process.env.BUSINESS_UNIT_ID || 'YOUR_TRUSTPILOT_BUSINESS_UNIT_ID'
 };
 ```
 As you can see, it's also possible to define all your configuration as environment variables, if you prefer this.
