@@ -14,7 +14,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
   slackapp.configureSlackApp({
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
-    scopes: ['bot', 'channels:history', 'incoming-webhook']
+    scopes: ['bot', 'channels:history', 'incoming-webhook', 'commands']
   });
 
   slackapp.on('tick', () => {});
@@ -170,31 +170,27 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     Entry points
   */
 
-  slackapp.hears(['.*'], ['direct_message'], (bot, message) => {
-    bot.reply(message, {
-      text: `I need to be invited to a channel in order to work (my permissions on Slack are a bit silly that way).
- Use one of your existing channels or create a new one, it's up to you!`
-    });
+  slackapp.hears(['.*'], ['direct_mention'], (bot, message) => {
+    bot.reply(message, 'I can take Slash commands now! Just use /trustpilot in a public channel where I\'m invited.');
   });
 
-  slackapp.hears(['[1-5] stars?', 'la(te)?st'], ['direct_mention'], (bot, message) => {
-    if (message.thread_ts) {
-      bot.reply(message, {
-        text: 'Looks like we\'re in a thread? I\'m confused! I can handle your request if you ask me in a channel.'
-      });
+  slackapp.on('slash_command', (bot, message) => {
+    if (message.token !== config.VERIFICATION_TOKEN) {
       return;
     }
-    var nbStars = Number(message.text.split(' ')[0]);
-    nbStars = isNaN(nbStars) ? null : nbStars;
-    var slackTeamId = bot.team_info.id;
+    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
+      var nbStars = Number(message.text.split(' ')[0]);
+      nbStars = isNaN(nbStars) ? null : nbStars;
+      var slackTeamId = bot.team_info.id;
 
-    businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
-      trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
-        if (lastReview) {
-          bot.reply(message, formatReview(lastReview));
-        }
+      businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
+        trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
+          if (lastReview) {
+            bot.reply(message, formatReview(lastReview));
+          }
+        });
       });
-    });
+    }
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
