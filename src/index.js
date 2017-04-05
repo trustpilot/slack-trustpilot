@@ -28,8 +28,8 @@ var oAuthHandler = require(path.resolve(__dirname, `./${OAUTH_HANDLER_SOURCE}`))
 var serverExtensions = require(path.resolve(__dirname, `./${WEBSERVER_EXTENSIONS_SOURCE}`));
 var storage = require(path.resolve(__dirname, `./${STORAGE_MIDDLEWARE_SOURCE}`));
 
-var trustpilot = require(path.resolve(__dirname, './trustpilot.js'))(config, tokenRequest);
-var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, businessUnitProvider, trustpilot, storage);
+var trustpilotApi = require(path.resolve(__dirname, './trustpilotApi.js'))(config, tokenRequest);
+var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, businessUnitProvider, trustpilotApi, storage);
 
 // Set up a web server to expose oauth and webhook endpoints
 slackapp.setupWebserver(PORT, () => {
