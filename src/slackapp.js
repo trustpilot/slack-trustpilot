@@ -156,10 +156,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     Entry points
   */
 
-  slackapp.hears(['.*'], ['direct_mention'], (bot, message) => {
-    bot.reply(message, 'I can take Slash commands now! Just use /trustpilot in a public channel where I\'m invited.');
-  });
-
   slackapp.on('slash_command', (bot, message) => {
     if (message.token !== config.VERIFICATION_TOKEN) {
       return;
