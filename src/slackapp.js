@@ -78,23 +78,8 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     };
   }
 
-  var _replyTrackers = {};
-
-  function trackReply(reviewId, message) {
-    _replyTrackers[reviewId] = {
-      reviewMessageTs: message.original_message.ts,
-      start: message.action_ts
-    };
-  }
-
-  function getReplyTracker(reviewId) {
-    return _replyTrackers[reviewId];
-  }
-
   function askForReply(bot, message) {
     var reviewId = message.original_message.attachments[0].callback_id;
-    trackReply(reviewId, message);
-
     var replyStepMessage = message.original_message;
     replyStepMessage.text = 'You are replying to';
     replyStepMessage.attachments[0].actions = null;
@@ -142,17 +127,14 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
   function handleReply(bot, message) {
     var currentChannel = message.channel;
     var ts = message.original_message.ts;
+    var threadTs = message.original_message.thread_ts;
     var reviewId = message.original_message.attachments[0].callback_id;
-    var tracker = getReplyTracker(reviewId);
-    if (!tracker) {
-      return;
-    }
 
-    collectUserMessages(bot, message.user, currentChannel, tracker.reviewMessageTs).then((fullText) => {
+    collectUserMessages(bot, message.user, currentChannel, threadTs).then((fullText) => {
       if (fullText) {
         trustpilot.replyToReview(reviewId, fullText).then(() => {
           bot.api.chat.update({
-            ts: tracker.reviewMessageTs,
+            ts: threadTs,
             channel: currentChannel,
             text: 'You have replied to this review.'
           });
@@ -160,7 +142,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
             ts: ts,
             channel: currentChannel
           });
-          delete _replyTrackers[reviewId];
         });
       }
     });
