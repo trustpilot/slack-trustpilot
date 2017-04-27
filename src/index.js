@@ -16,19 +16,17 @@ if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET) {
 const PORT = process.env.PORT || 7142;
 
 // Allows dependency injection (injected modules need to be in the same directory as this source)
-const TOKEN_REQUEST_SOURCE = process.env.TOKEN_REQUEST_SOURCE || 'business-user-token-request.js';
 const BUSINESS_UNIT_PROVIDER_SOURCE = process.env.BUSINESS_UNIT_PROVIDER_SOURCE || 'business-unit-provider.js';
 const OAUTH_HANDLER_SOURCE = process.env.OAUTH_HANDLER_SOURCE || 'oauth-handler.js';
 const WEBSERVER_EXTENSIONS_SOURCE = process.env.WEBSERVER_EXTENSIONS_SOURCE || 'extensions.js';
 const STORAGE_MIDDLEWARE_SOURCE = process.env.STORAGE_MIDDLEWARE_SOURCE || 'no-storage.js';
 
-var tokenRequest = require(path.resolve(__dirname, `./${TOKEN_REQUEST_SOURCE}`))(config);
 var businessUnitProvider = require(path.resolve(__dirname, `./${BUSINESS_UNIT_PROVIDER_SOURCE}`))(config);
 var oAuthHandler = require(path.resolve(__dirname, `./${OAUTH_HANDLER_SOURCE}`));
 var serverExtensions = require(path.resolve(__dirname, `./${WEBSERVER_EXTENSIONS_SOURCE}`));
 var storage = require(path.resolve(__dirname, `./${STORAGE_MIDDLEWARE_SOURCE}`));
 
-var trustpilotApi = require(path.resolve(__dirname, './trustpilotApi.js'))(config, tokenRequest);
+var trustpilotApi = require(path.resolve(__dirname, './trustpilotApi.js'))(config);
 var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, businessUnitProvider, trustpilotApi, storage);
 
 // Set up a web server to expose oauth and webhook endpoints
