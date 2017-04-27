@@ -14,36 +14,22 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
   slackapp.configureSlackApp({
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
+    'rtm_receive_messages': false,
     scopes: ['bot', 'channels:history', 'incoming-webhook', 'commands']
   });
 
   slackapp.on('tick', () => {});
 
-  // just a simple way to make sure we don't
-  // connect to the RTM twice for the same team
-  var _bots = {};
-
-  function trackBot(bot) {
-    _bots[bot.config.token] = bot;
-  }
-
   slackapp.on('create_bot', (bot, config) => {
-    if (_bots[bot.config.token]) {
-      // already online! do nothing.
-      return;
-    }
+    // We're not using the RTM API so we need to tell Botkit to start processing conversations
+    slackapp.startTicking();
     bluebird.promisifyAll(bot);
 
-    bot.startRTMAsync().then(() => {
-      trackBot(bot);
-      console.info(`Use /incoming-webhooks/${bot.team_info.id} to receive new reviews.`);
-
-      bot.startPrivateConversationAsync({
-        user: config.createdBy
-      }).then((convo) => {
-        convo.say('I am a bot that has just joined your team');
-        convo.say('You must now /invite me to a channel so that I can be of use!');
-      });
+    bot.startPrivateConversationAsync({
+      user: config.createdBy
+    }).then((convo) => {
+      convo.say('I am a bot that has just joined your team');
+      convo.say('You must now /invite me to a channel so that I can be of use!');
     });
   });
 
@@ -151,27 +137,25 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
     Entry points
   */
 
-  slackapp.hears(['.*'], ['direct_mention'], (bot, message) => {
-    bot.reply(message, 'I can take Slash commands now! Just use /trustpilot in a public channel where I\'m invited.');
-  });
-
   slackapp.on('slash_command', (bot, message) => {
     if (message.token !== config.VERIFICATION_TOKEN) {
       return;
     }
-    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-      var nbStars = Number(message.text.split(' ')[0]);
-      nbStars = isNaN(nbStars) ? null : nbStars;
-      var slackTeamId = bot.team_info.id;
+    bot.replyAcknowledge(() => {
+      if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
+        var nbStars = Number(message.text.split(' ')[0]);
+        nbStars = isNaN(nbStars) ? null : nbStars;
+        var slackTeamId = bot.team_info.id;
 
-      businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
-        trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
-          if (lastReview) {
-            bot.reply(message, formatReview(lastReview));
-          }
+        businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
+          trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
+            if (lastReview) {
+              bot.reply(message, formatReview(lastReview));
+            }
+          });
         });
-      });
-    }
+      }
+    });
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {

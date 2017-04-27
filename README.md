@@ -8,7 +8,7 @@ Trustpilot also provides a hosted version of this project through [Trustpilot La
 
 ## How does it work?
 
-Once deployed and authorized on your Slack domain, the app creates a bot user, which you will be able to `@mention` and ask e.g. for the latest "5 stars" review. The latest unanswered review with the given star rating will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
+Once deployed and authorized on your Slack domain, the app creates a bot user and adds a new slash command which will enable you to ask for the latest review (e.g `/trustpilot latest` or `/trustpilot 5 stars` if you want to see a 5-star review). The latest unanswered review will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
 
 It's as easy as demonstrated by these screenshots!
 
@@ -62,6 +62,7 @@ Once your app is deployed, the following endpoints should be reachable:
 - In "App Credentials", the Redirect URI should point to the OAuth endpoint at the place where you deployed your app. This should look like `https://<your.app.url>/oauth`.
 - In "Bot Users", make sure to add a bot. Call it something nice, like `trustpilot` ;)
 - In "Interactive Messages", paste your receiving endpoint (which should look like `https://<your.app.url>/slack/receive`)
+- In "Slash Commands", create a new command (e.g `/trustpilot`) and point it to the same endpoint as above, `https://<your.app.url>/slack/receive`
 
 You should now be able to authorize your app by visiting the login endpoint at `https://<your.app.url>/login`
 
