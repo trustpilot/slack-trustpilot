@@ -1,61 +1,26 @@
 'use strict';
 
-const requestPromise = require('request-promise');
+// Allow dependency injection of an extended client module
+const Trustpilot = process.env.TRUSTPILOT_CLIENT_MODULE ?
+  require(process.env.TRUSTPILOT_CLIENT_MODULE) :
+  require('trustpilot');
 
-module.exports = function (config, tokenRequest) {
-  const API_KEY = config.API_KEY;
-  const API_HOST = config.API_HOST;
+module.exports = function (config) {
+
+  const client = new Trustpilot({
+    apiKey: config.API_KEY,
+    secret: config.API_SECRET,
+    username: config.BUSINESS_USER_NAME,
+    password: config.BUSINESS_USER_PASS,
+    baseUrl: config.API_HOST
+  });
   const BUSINESS_UNIT_ID = config.BUSINESS_UNIT_ID;
 
-  var baseRequest = requestPromise.defaults({
-    baseUrl: API_HOST,
-    json: true
-  });
-
-  var requestWithApiKey = baseRequest.defaults({
-    headers: {
-      'apikey': API_KEY
-    }
-  });
-
   var ApiBridge = (() => {
-    var authorization;
-
-    function isAuthValid() {
-      if (!authorization) {
-        return false;
-      }
-      var shouldExpireBy = parseInt(authorization.issued_at) + parseInt(authorization.expires_in);
-      var now = new Date().getTime();
-
-      if (now > (shouldExpireBy - 3600)) {
-        return false;
-      }
-
-      return true;
-    }
-
-    function getFreshToken() {
-      if (isAuthValid()) {
-        return global.Promise.resolve(authorization);
-      } else {
-        return requestWithApiKey(tokenRequest).then((data) => {
-          authorization = data;
-          return authorization;
-        }).catch(() => {
-          console.error(`Something went wrong when setting up access to the Trustpilot APIs.
- Please check your API key and secret.`);
-        });
-      }
-    }
 
     function privateRequest(options) {
-      return getFreshToken().then((data) => {
-        options.auth = {
-          bearer: data.access_token
-        };
-
-        return requestWithApiKey(options);
+      return client.authenticate().then((requestWrapper) => {
+        return requestWrapper(options);
       });
     }
 
