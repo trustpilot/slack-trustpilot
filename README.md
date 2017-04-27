@@ -12,7 +12,9 @@ Once deployed and authorized on your Slack domain, the app creates a bot user an
 
 It's as easy as demonstrated by these screenshots!
 
-[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png)
+[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png)
+
+[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png)
 
 ## How to set this up
 
