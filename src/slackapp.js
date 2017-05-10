@@ -5,7 +5,7 @@ const _S = require('underscore.string');
 const moment = require('moment');
 const bluebird = require('bluebird');
 
-function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
+function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
 
   /*
     Startup
@@ -118,7 +118,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
 
     collectUserMessages(bot, message.user, currentChannel, threadTs).then((fullText) => {
       if (fullText) {
-        trustpilot.replyToReview(reviewId, fullText).then(() => {
+        trustpilotApi.replyToReview(reviewId, fullText).then(() => {
           bot.api.chat.update({
             ts: threadTs,
             channel: currentChannel,
@@ -148,7 +148,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
         var slackTeamId = bot.team_info.id;
 
         businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
-          trustpilot.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
+          trustpilotApi.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
             if (lastReview) {
               bot.reply(message, formatReview(lastReview));
             }
@@ -189,13 +189,13 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilot) {
   };
 }
 
-module.exports = function (config, businessUnitProvider, trustpilot, storage) {
+module.exports = function (config, businessUnitProvider, trustpilotApi, storage) {
   var slackapp = botkit.slackbot({
     'debug': false,
     'storage': storage,
     'json_file_store': './storage/', // Fallback to jfs when no storage middleware provided
     'retry': 2
   });
-  setupApp(slackapp, config, businessUnitProvider, trustpilot);
+  setupApp(slackapp, config, businessUnitProvider, trustpilotApi);
   return slackapp;
 };
