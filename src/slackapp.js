@@ -80,14 +80,24 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
     var originalTs = callbackData.originalTs;
     var reviewId = callbackData.reviewId;
 
-    trustpilotApi.replyToReview({
+    var userPromise = bot.getMessageUser(message);
+    var replyPromise = trustpilotApi.replyToReview({
       reviewId,
       message: message.submission.reply
-    }).then(() => {
-      bot.api.chat.update({
-        ts: originalTs,
+    });
+
+    Promise.all([userPromise, replyPromise]).then((data) => {
+      bot.say({
+        'thread_ts': originalTs,
         channel: message.channel,
-        text: `You have replied to the following review with: "${message.submission.reply}"`
+        text: '',
+        attachments: [{
+          'attachment_type': 'default',
+          'fallback': '',
+          'author_name': data[0].username,
+          'text': message.submission.reply,
+          'ts': message.action_ts
+        }]
       });
     });
   }
