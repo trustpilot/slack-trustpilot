@@ -107,9 +107,6 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   */
 
   slackapp.on('slash_command', (bot, message) => {
-    if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
-    }
     bot.replyAcknowledge(() => {
       if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
         var stars = Number(message.text.split(' ')[0]);
@@ -128,18 +125,12 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
-    if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
-    }
     if (message.actions[0].value === 'step_1_write_reply') {
       askForReply(bot, message);
     }
   });
 
   slackapp.on('dialog_submission', (bot, message) => {
-    if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
-    }
     // Tell Slack right away that the dialog can be dismissed
     bot.dialogOk();
     handleReply(bot, message);
