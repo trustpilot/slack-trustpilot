@@ -13,16 +13,17 @@
   },
   "dependencies": {
     "bluebird": "^3.4.6",
-    "botkit": "^0.5.1",
+    "botkit": "^0.6.6",
     "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",
     "request": "^2.72.0",
     "request-promise": "^3.0.0",
-    "trustpilot": "^2.1.0",
+    "trustpilot": "^2.2.0",
     "underscore.string": "^3.3.4"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
+    "eslint": "^4.11.0",
     "eslint-config-trustpilot": "^1.7.0",
     "eslint-plugin-babel": "^4.1.0",
     "gulp": "^3.9.1",

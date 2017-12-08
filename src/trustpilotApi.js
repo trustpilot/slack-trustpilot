@@ -25,7 +25,7 @@ module.exports = function (config) {
     }
 
     return {
-      getLastUnansweredReview: function (stars, businessUnitId) {
+      getLastUnansweredReview: function ({stars, businessUnitId}) {
         var params = {
           orderBy: 'createdat.desc',
           responded: false
@@ -47,7 +47,7 @@ module.exports = function (config) {
         });
       },
 
-      replyToReview: function (reviewId, message) {
+      replyToReview: function ({reviewId, message}) {
         return privateRequest({
           method: 'POST',
           uri: `/v1/private/reviews/${reviewId}/reply`,

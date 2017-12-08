@@ -15,7 +15,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
     'rtm_receive_messages': false,
-    scopes: ['bot', 'channels:history', 'incoming-webhook', 'commands']
+    scopes: ['bot', 'incoming-webhook', 'commands']
   });
 
   slackapp.on('tick', () => {});
@@ -65,71 +65,40 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   }
 
   function askForReply(bot, message) {
+    var originalTs = message.original_message.ts;
     var reviewId = message.original_message.attachments[0].callback_id;
-    var replyStepMessage = message.original_message;
-    replyStepMessage.text = 'You are replying to';
-    replyStepMessage.attachments[0].actions = null;
-    bot.replyInteractive(message, replyStepMessage);
+    var dialog = bot.createDialog('Reply to a review', JSON.stringify({originalTs, reviewId}), 'Send')
+      .addTextarea('Your reply', 'reply');
 
-    bot.replyInThread(replyStepMessage, {
-      'text': `Please write your reply in this thread, in as many lines as you need. Hit the "Send reply" button
- when you're done.`,
-      'attachments': [{
-        'callback_id': reviewId,
-        'attachment_type': 'default',
-        'text': '',
-        'actions': [{
-          'name': 'step_2_send_reply',
-          'text': ':postal_horn: Send reply',
-          'value': 'step_2_send_reply',
-          'type': 'button'
-        }]
-      }]
-    });
-  }
-
-  function collectUserMessages(bot, user, channel, threadTs) {
-    bluebird.promisifyAll(bot.api.channels);
-
-    return bot.api.channels.repliesAsync({
-      'token': bot.config.incoming_webhook.token,
-      'channel': channel,
-      'thread_ts': threadTs
-    }).then((data) => {
-      if (data && data.hasOwnProperty('messages')) {
-        var fullText = data.messages.filter((message) => {
-          return message.user === user;
-        })
-        .map((message) => {
-          return message.text;
-        })
-        .join('\n');
-        return fullText;
-      }
-      return null;
+    bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
+      console.log(err, res);
     });
   }
 
   function handleReply(bot, message) {
-    var currentChannel = message.channel;
-    var ts = message.original_message.ts;
-    var threadTs = message.original_message.thread_ts;
-    var reviewId = message.original_message.attachments[0].callback_id;
+    var callbackData = JSON.parse(message.callback_id);
+    var originalTs = callbackData.originalTs;
+    var reviewId = callbackData.reviewId;
 
-    collectUserMessages(bot, message.user, currentChannel, threadTs).then((fullText) => {
-      if (fullText) {
-        trustpilotApi.replyToReview(reviewId, fullText).then(() => {
-          bot.api.chat.update({
-            ts: threadTs,
-            channel: currentChannel,
-            text: 'You have replied to this review.'
-          });
-          bot.api.chat.delete({
-            ts: ts,
-            channel: currentChannel
-          });
-        });
-      }
+    var userPromise = bot.getMessageUser(message);
+    var replyPromise = trustpilotApi.replyToReview({
+      reviewId,
+      message: message.submission.reply
+    });
+
+    Promise.all([userPromise, replyPromise]).then((data) => {
+      bot.say({
+        'thread_ts': originalTs,
+        channel: message.channel,
+        text: '',
+        attachments: [{
+          'attachment_type': 'default',
+          'fallback': '',
+          'author_name': data[0].username,
+          'text': message.submission.reply,
+          'ts': message.action_ts
+        }]
+      });
     });
   }
 
@@ -138,17 +107,14 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   */
 
   slackapp.on('slash_command', (bot, message) => {
-    if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
-    }
     bot.replyAcknowledge(() => {
       if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-        var nbStars = Number(message.text.split(' ')[0]);
-        nbStars = isNaN(nbStars) ? null : nbStars;
+        var stars = Number(message.text.split(' ')[0]);
+        stars = isNaN(stars) ? null : stars;
         var slackTeamId = bot.team_info.id;
 
         businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
-          trustpilotApi.getLastUnansweredReview(nbStars, businessUnitId).then(function (lastReview) {
+          trustpilotApi.getLastUnansweredReview({stars, businessUnitId}).then(function (lastReview) {
             if (lastReview) {
               bot.reply(message, formatReview(lastReview));
             }
@@ -159,17 +125,15 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
-    if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
+    if (message.actions[0].value === 'step_1_write_reply') {
+      askForReply(bot, message);
     }
-    switch (message.actions[0].value) {
-      case 'step_1_write_reply':
-        askForReply(bot, message);
-        break;
-      case 'step_2_send_reply':
-        handleReply(bot, message);
-        break;
-    }
+  });
+
+  slackapp.on('dialog_submission', (bot, message) => {
+    // Tell Slack right away that the dialog can be dismissed
+    bot.dialogOk();
+    handleReply(bot, message);
   });
 
   /*
