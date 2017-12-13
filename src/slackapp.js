@@ -71,7 +71,9 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
       .addTextarea('Your reply', 'reply');
 
     bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
-      console.log(err, res);
+      if (err) {
+        console.log(err, res);
+      }
     });
   }
 
@@ -86,19 +88,35 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
       message: message.submission.reply
     });
 
-    Promise.all([userPromise, replyPromise]).then((data) => {
-      bot.say({
-        'thread_ts': originalTs,
-        channel: message.channel,
-        text: '',
-        attachments: [{
-          'attachment_type': 'default',
-          'fallback': '',
-          'author_name': data[0].username,
-          'text': message.submission.reply,
-          'ts': message.action_ts
-        }]
+    var errorReaction = {
+      timestamp: originalTs,
+      channel: message.channel,
+      name: 'boom'
+    };
+
+    replyPromise.then(() => {
+      userPromise.then((data) => data.username).catch(() => null).then((username) => {
+        bot.say({
+          'thread_ts': originalTs,
+          channel: message.channel,
+          text: '',
+          attachments: [{
+            'attachment_type': 'default',
+            'fallback': '',
+            'author_name': username,
+            'text': message.submission.reply,
+            'ts': message.action_ts
+          }]
+        });
+        bot.api.reactions.remove(errorReaction);
       });
+    }).catch(() => {
+      bot.sendEphemeral({
+        user: message.user,
+        channel: message.channel,
+        text: 'Something went wrong while sending your reply! Please try again shortly.'
+      });
+      bot.api.reactions.add(errorReaction);
     });
   }
 
