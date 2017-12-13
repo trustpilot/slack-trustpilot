@@ -14,7 +14,7 @@ It's as easy as demonstrated by these screenshots!
 
 [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/slash_command.png)
 
-[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/replying.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.png)
+[<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/unanswered_reviews.jpg" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/unanswered_reviews.jpg) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/reply_dialog.png" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/reply_dialog.png) [<img src="https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.jpg" width="175">](https://github.com/trustpilot/slack-trustpilot/blob/master/screenshots/done.jpg)
 
 ## How to set this up
 
