@@ -120,9 +120,9 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
 
   slackapp.on('slash_command', (bot, message) => {
     if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
+      return false;
     }
-    bot.replyAcknowledge(() => {
+    bot.replyAcknowledge();
       if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
         var stars = Number(message.text.split(' ')[0]);
         stars = isNaN(stars) ? null : stars;
@@ -136,25 +136,28 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
           });
         });
       }
-    });
+    return true;
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
     if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
+      return false;
     }
+    bot.replyAcknowledge();
     if (message.actions[0].value === 'step_1_write_reply') {
       askForReply(bot, message);
     }
+    return true;
   });
 
   slackapp.on('dialog_submission', (bot, message) => {
     if (message.token !== config.VERIFICATION_TOKEN) {
-      return;
+      return false;
     }
     // Tell Slack right away that the dialog can be dismissed
     bot.dialogOk();
     handleReply(bot, message.raw_message);
+    return true;
   });
 
   /*
