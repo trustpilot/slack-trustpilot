@@ -81,39 +81,33 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
     var callbackData = JSON.parse(message.callback_id);
     var originalTs = callbackData.originalTs;
     var reviewId = callbackData.reviewId;
-
-    var userPromise = bot.getMessageUser(message);
-    var replyPromise = trustpilotApi.replyToReview({
-      reviewId,
-      message: message.submission.reply
-    });
-
     var errorReaction = {
       timestamp: originalTs,
-      channel: message.channel,
+      channel: message.channel.id,
       name: 'boom'
     };
 
-    replyPromise.then(() => {
-      userPromise.then((data) => data.username).catch(() => null).then((username) => {
+    trustpilotApi.replyToReview({
+      reviewId,
+      message: message.submission.reply
+    }).then(() => {
         bot.say({
           'thread_ts': originalTs,
-          channel: message.channel,
+        channel: message.channel.id,
           text: '',
           attachments: [{
             'attachment_type': 'default',
             'fallback': '',
-            'author_name': username,
+          'author_name': message.user.name,
             'text': message.submission.reply,
             'ts': message.action_ts
           }]
         });
         bot.api.reactions.remove(errorReaction);
-      });
     }).catch(() => {
       bot.sendEphemeral({
-        user: message.user,
-        channel: message.channel,
+        user: message.user.id,
+        channel: message.channel.id,
         text: 'Something went wrong while sending your reply! Please try again shortly.'
       });
       bot.api.reactions.add(errorReaction);
@@ -160,7 +154,7 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
     }
     // Tell Slack right away that the dialog can be dismissed
     bot.dialogOk();
-    handleReply(bot, message);
+    handleReply(bot, message.raw_message);
   });
 
   /*
