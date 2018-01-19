@@ -73,10 +73,10 @@ You should now be able to authorize your app by visiting the login endpoint at `
 
 If you don't want to deploy this app just yet, this repo comes with everything you need to run the code locally.
 
-After running the obligatory `npm install`, start the app with Gulp:
+After running the obligatory `npm install`, start the app with:
 
 ```
-gulp local
+npm start
 ```
 
 Wait for the localtunnel.me URL to appear in the log messages. This will allow Slack to bridge with your locally running app:
