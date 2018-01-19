@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "bluebird": "^3.4.6",
-    "botkit": "^0.6.6",
+    "botkit": "^0.6.8",
     "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",
     "request": "^2.72.0",
