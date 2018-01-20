@@ -4,7 +4,7 @@
 */
 
 const path = require('path');
-const config = require(path.resolve(__dirname, '../config.js'));
+const config = require(path.resolve(__dirname, './config.js'));
 
 if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET) {
   console.log(`Sorry, you need to give me this app's credentials. Please configure
