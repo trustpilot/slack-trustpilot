@@ -51,7 +51,7 @@ As you can see, it's also possible to define all your configuration as environme
 
 ### Deploy this app somewhere
 
-This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :)
+This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :) (you can – and maybe should – also run this app in a Docker container. The included [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) should set you off to a good start)
 
 Once your app is deployed, the following endpoints should be reachable:
 
