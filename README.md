@@ -8,7 +8,7 @@ Trustpilot also provides a hosted version of this project through [Trustpilot La
 
 ## How does it work?
 
-Once deployed and authorized on your Slack domain, the app creates a bot user and adds a new slash command which will enable you to ask for the latest review (e.g `/trustpilot latest` or `/trustpilot 5 stars` if you want to see a 5-star review). The latest unanswered review will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
+Once deployed and authorized on your Slack domain, the app creates a bot user and adds a new slash command which will enable you to ask for the latest review (e.g `/trustpilot latest` or `/trustpilot 5 stars` if you want to see a 5-star review). The latest unanswered review will then be displayed, along with a "Reply" button. If you want to reply, the app will create a dialog box where you can compose your reply and send it.
 
 It's as easy as demonstrated by these screenshots!
 
@@ -76,7 +76,7 @@ If you don't want to deploy this app just yet, this repo comes with everything y
 After running the obligatory `npm install`, start the app with:
 
 ```
-npm start
+npm run local
 ```
 
 Wait for the localtunnel.me URL to appear in the log messages. This will allow Slack to bridge with your locally running app:
