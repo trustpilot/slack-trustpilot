@@ -8,7 +8,7 @@ Trustpilot also provides a hosted version of this project through [Trustpilot La
 
 ## How does it work?
 
-Once deployed and authorized on your Slack domain, the app creates a bot user and adds a new slash command which will enable you to ask for the latest review (e.g `/trustpilot latest` or `/trustpilot 5 stars` if you want to see a 5-star review). The latest unanswered review will then be displayed, along with a "Reply" button. If you want to reply, the robot will create a thread where you can write your reply and send it. Don't worry! You can delete and edit messages as you please before pushing the "Send reply" button.
+Once deployed and authorized on your Slack domain, the app creates a bot user and adds a new slash command which will enable you to ask for the latest review (e.g `/trustpilot latest` or `/trustpilot 5 stars` if you want to see a 5-star review). The latest unanswered review will then be displayed, along with a "Reply" button. If you want to reply, the app will create a dialog box where you can compose your reply and send it.
 
 It's as easy as demonstrated by these screenshots!
 
@@ -32,7 +32,7 @@ You will also need to get a Verification token for Interactive Messages, to make
 
 ### Configuration
 
-You should now have all the information to configure this app. Just clone this repo and edit the [`config.js`](config.js) file. The contents should be as follows:
+You should now have all the information to configure this app. Just clone this repo and edit the [`src/config.js`](src/config.js) file. The contents should be as follows:
 
 ```javascript
 module.exports = {
@@ -51,7 +51,7 @@ As you can see, it's also possible to define all your configuration as environme
 
 ### Deploy this app somewhere
 
-This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :)
+This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :) (you can – and maybe should – also run this app in a Docker container. The included [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) should set you off to a good start)
 
 Once your app is deployed, the following endpoints should be reachable:
 
@@ -73,10 +73,10 @@ You should now be able to authorize your app by visiting the login endpoint at `
 
 If you don't want to deploy this app just yet, this repo comes with everything you need to run the code locally.
 
-After running the obligatory `npm install`, start the app with Gulp:
+After running the obligatory `npm install`, start the app with:
 
 ```
-gulp local
+npm run local
 ```
 
 Wait for the localtunnel.me URL to appear in the log messages. This will allow Slack to bridge with your locally running app:

@@ -4,7 +4,7 @@
 */
 
 const path = require('path');
-const config = require(path.resolve(__dirname, '../config.js'));
+const config = require(path.resolve(__dirname, './config.js'));
 
 if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET) {
   console.log(`Sorry, you need to give me this app's credentials. Please configure
@@ -33,6 +33,6 @@ var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, busines
 slackapp.setupWebserver(PORT, () => {
   // Middleware mounting and the like needs to happen before we set up the endpoints
   serverExtensions(slackapp, PORT);
-  slackapp.createWebhookEndpoints(slackapp.webserver);
+  slackapp.createWebhookEndpoints(slackapp.webserver, config.VERIFICATION_TOKEN);
   slackapp.createOauthEndpoints(slackapp.webserver, oAuthHandler);
 });
