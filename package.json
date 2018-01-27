@@ -6,11 +6,11 @@
   "repository": "https://github.com/trustpilot/slack-trustpilot.git",
   "author": "Trustpilot",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "app/index.js",
   "scripts": {
-    "local": "cross-env ENABLE_LOCAL_TUNNEL=true node src/index.js",
-    "start": "node src/index.js",
-    "lint": "eslint 'src/**/*.js'",
+    "local": "cross-env ENABLE_LOCAL_TUNNEL=true node app/index.js",
+    "start": "node app/index.js",
+    "lint": "eslint 'app/**/*.js'",
     "precommit": "npm run lint"
   },
   "dependencies": {
