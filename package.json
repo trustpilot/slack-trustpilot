@@ -10,7 +10,8 @@
   "scripts": {
     "local": "cross-env ENABLE_LOCAL_TUNNEL=true node src/index.js",
     "start": "node src/index.js",
-    "test": "eslint '**/*.js'"
+    "lint": "eslint 'src/**/*.js'",
+    "precommit": "npm run lint"
   },
   "dependencies": {
     "bluebird": "^3.4.6",
@@ -28,6 +29,7 @@
     "eslint": "^4.11.0",
     "eslint-config-trustpilot": "^1.7.0",
     "eslint-plugin-babel": "^4.1.0",
+    "husky": "^0.14.3",
     "localtunnel": "^1.8.3"
   }
 }

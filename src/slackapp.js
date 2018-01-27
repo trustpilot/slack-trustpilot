@@ -91,19 +91,19 @@ function setupApp(slackapp, config, trustpilotApi) {
       reviewId,
       message: message.submission.reply
     }).then(() => {
-        bot.say({
-          'thread_ts': originalTs,
+      bot.say({
+        'thread_ts': originalTs,
         channel: message.channel.id,
-          text: '',
-          attachments: [{
-            'attachment_type': 'default',
-            'fallback': '',
+        text: '',
+        attachments: [{
+          'attachment_type': 'default',
+          'fallback': '',
           'author_name': message.user.name,
-            'text': message.submission.reply,
-            'ts': message.action_ts
-          }]
-        });
-        bot.api.reactions.remove(errorReaction);
+          'text': message.submission.reply,
+          'ts': message.action_ts
+        }]
+      });
+      bot.api.reactions.remove(errorReaction);
     }).catch(() => {
       bot.sendEphemeral({
         user: message.user.id,
@@ -120,20 +120,20 @@ function setupApp(slackapp, config, trustpilotApi) {
 
   slackapp.on('slash_command', (bot, message) => {
     bot.replyAcknowledge();
-      if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-        var stars = Number(message.text.split(' ')[0]);
-        stars = isNaN(stars) ? null : stars;
+    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
+      var stars = Number(message.text.split(' ')[0]);
+      stars = isNaN(stars) ? null : stars;
       var businessUnitId = bot.team_info.businessUnitId;
 
       trustpilotApi.getLastUnansweredReview({
         stars,
         businessUnitId
       }).then(function (lastReview) {
-            if (lastReview) {
-              bot.reply(message, formatReview(lastReview));
-            }
-          });
-      }
+        if (lastReview) {
+          bot.reply(message, formatReview(lastReview));
+        }
+      });
+    }
     return true;
   });
 
