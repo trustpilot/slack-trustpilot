@@ -32,7 +32,7 @@ var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, busines
 // Set up a web server to expose oauth and webhook endpoints
 slackapp.setupWebserver(PORT, () => {
   // Middleware mounting and the like needs to happen before we set up the endpoints
-  serverExtensions(slackapp, PORT);
+  serverExtensions(slackapp, config, PORT);
   slackapp.createWebhookEndpoints(slackapp.webserver, config.VERIFICATION_TOKEN);
   slackapp.createOauthEndpoints(slackapp.webserver, oAuthHandler);
 });
