@@ -18,7 +18,7 @@ module.exports = function (slackapp, config, port) {
 
   // Custom endpoint for External Webhooks from Trustpilot
   slackapp.webserver.post('/incoming-webhooks/:teamId', (req, res) => {
-    var events = req.body.events;
+    const events = req.body.events;
 
     events.filter((e) => {
       return e.eventName === 'service-review-created';

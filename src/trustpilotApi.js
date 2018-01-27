@@ -12,11 +12,11 @@ module.exports = function (config) {
     secret: config.API_SECRET,
     username: config.BUSINESS_USER_NAME,
     password: config.BUSINESS_USER_PASS,
-    baseUrl: config.API_HOST
+    baseUrl: config.API_HOST,
   });
   const BUSINESS_UNIT_ID = config.BUSINESS_UNIT_ID;
 
-  var ApiBridge = (() => {
+  const ApiBridge = (() => {
 
     function privateRequest(options) {
       return client.authenticate().then((requestWrapper) => {
@@ -26,9 +26,9 @@ module.exports = function (config) {
 
     return {
       getLastUnansweredReview: function ({stars, businessUnitId}) {
-        var params = {
+        const params = {
           orderBy: 'createdat.desc',
-          responded: false
+          responded: false,
         };
         if (stars) {
           params.stars = stars;
@@ -37,7 +37,7 @@ module.exports = function (config) {
         return privateRequest({
           method: 'GET',
           uri: `/v1/private/business-units/${businessUnitId}/reviews`,
-          qs: params
+          qs: params,
         }).then((data) => {
           if (data.reviews.length > 0) {
             return data.reviews[0];
@@ -52,10 +52,10 @@ module.exports = function (config) {
           method: 'POST',
           uri: `/v1/private/reviews/${reviewId}/reply`,
           form: {
-            message: message
-          }
+            message: message,
+          },
         });
-      }
+      },
     };
   })();
 

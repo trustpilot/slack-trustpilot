@@ -1001,9 +1001,9 @@ escape-string-regexp@^1.0.2, escape-string-regexp@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
 
-eslint-config-trustpilot@^1.7.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-trustpilot/-/eslint-config-trustpilot-1.8.0.tgz#cce92f5eb143324da040ef46c6494b1927587793"
+eslint-config-trustpilot@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/eslint-config-trustpilot/-/eslint-config-trustpilot-3.2.1.tgz#fbff079af27b861957eb89e1d4e8f9c444b0d1be"
 
 eslint-plugin-babel@^4.1.0:
   version "4.1.2"

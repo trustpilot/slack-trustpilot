@@ -20,12 +20,12 @@ const OAUTH_HANDLER_SOURCE = process.env.OAUTH_HANDLER_SOURCE || 'oauth-handler.
 const WEBSERVER_EXTENSIONS_SOURCE = process.env.WEBSERVER_EXTENSIONS_SOURCE || 'extensions.js';
 const STORAGE_MIDDLEWARE_SOURCE = process.env.STORAGE_MIDDLEWARE_SOURCE || 'no-storage.js';
 
-var oAuthHandler = require(path.resolve(__dirname, `./${OAUTH_HANDLER_SOURCE}`));
-var serverExtensions = require(path.resolve(__dirname, `./${WEBSERVER_EXTENSIONS_SOURCE}`));
-var storage = require(path.resolve(__dirname, `./${STORAGE_MIDDLEWARE_SOURCE}`));
+const oAuthHandler = require(path.resolve(__dirname, `./${OAUTH_HANDLER_SOURCE}`));
+const serverExtensions = require(path.resolve(__dirname, `./${WEBSERVER_EXTENSIONS_SOURCE}`));
+const storage = require(path.resolve(__dirname, `./${STORAGE_MIDDLEWARE_SOURCE}`));
 
-var trustpilotApi = require(path.resolve(__dirname, './trustpilotApi.js'))(config);
-var slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, trustpilotApi, storage);
+const trustpilotApi = require(path.resolve(__dirname, './trustpilotApi.js'))(config);
+const slackapp = require(path.resolve(__dirname, './slackapp.js'))(config, trustpilotApi, storage);
 
 // Set up a web server to expose oauth and webhook endpoints
 slackapp.setupWebserver(PORT, () => {
