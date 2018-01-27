@@ -20,17 +20,16 @@ function setupApp(slackapp, config, trustpilotApi) {
 
   slackapp.on('tick', () => {});
 
-  slackapp.on('create_bot', (bot, config) => {
+  slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
     slackapp.startTicking();
     bluebird.promisifyAll(bot);
 
-    bot.startPrivateConversationAsync({
+    const convo = await bot.startPrivateConversationAsync({
       user: config.createdBy,
-    }).then((convo) => {
-      convo.say('I am a bot that has just joined your team');
-      convo.say('You must now /invite me to a channel so that I can be of use!');
     });
+    convo.say('I am a bot that has just joined your team');
+    convo.say('You must now /invite me to a channel so that I can be of use!');
   });
 
   /*
@@ -67,7 +66,10 @@ function setupApp(slackapp, config, trustpilotApi) {
   function askForReply(bot, message) {
     const originalTs = message.original_message.ts;
     const reviewId = message.original_message.attachments[0].callback_id;
-    const dialog = bot.createDialog('Reply to a review', JSON.stringify({originalTs, reviewId}), 'Send')
+    const dialog = bot.createDialog('Reply to a review', JSON.stringify({
+      originalTs,
+      reviewId,
+    }), 'Send')
       .addTextarea('Your reply', 'reply');
 
     bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
@@ -77,7 +79,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     });
   }
 
-  function handleReply(bot, message) {
+  async function handleReply(bot, message) {
     const callbackData = JSON.parse(message.callback_id);
     const originalTs = callbackData.originalTs;
     const reviewId = callbackData.reviewId;
@@ -87,10 +89,11 @@ function setupApp(slackapp, config, trustpilotApi) {
       name: 'boom',
     };
 
-    trustpilotApi.replyToReview({
-      reviewId,
-      message: message.submission.reply,
-    }).then(() => {
+    try {
+      await trustpilotApi.replyToReview({
+        reviewId,
+        message: message.submission.reply,
+      });
       bot.say({
         'thread_ts': originalTs,
         channel: message.channel.id,
@@ -104,35 +107,34 @@ function setupApp(slackapp, config, trustpilotApi) {
         }],
       });
       bot.api.reactions.remove(errorReaction);
-    }).catch(() => {
+    } catch (e) {
       bot.sendEphemeral({
         user: message.user.id,
         channel: message.channel.id,
         text: 'Something went wrong while sending your reply! Please try again shortly.',
       });
       bot.api.reactions.add(errorReaction);
-    });
+    }
   }
 
   /*
     Entry points
   */
 
-  slackapp.on('slash_command', (bot, message) => {
+  slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
       let stars = Number(message.text.split(' ')[0]);
       stars = isNaN(stars) ? null : stars;
       const businessUnitId = bot.team_info.businessUnitId;
 
-      trustpilotApi.getLastUnansweredReview({
+      const lastReview = await trustpilotApi.getLastUnansweredReview({
         stars,
         businessUnitId,
-      }).then(function (lastReview) {
-        if (lastReview) {
-          bot.reply(message, formatReview(lastReview));
-        }
       });
+      if (lastReview) {
+        bot.reply(message, formatReview(lastReview));
+      }
     }
     return true;
   });

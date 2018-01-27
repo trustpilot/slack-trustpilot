@@ -18,14 +18,16 @@ module.exports = function (config) {
 
   const ApiBridge = (() => {
 
-    function privateRequest(options) {
-      return client.authenticate().then((requestWrapper) => {
-        return requestWrapper(options);
-      });
+    async function privateRequest(options) {
+      const requestWrapper = await client.authenticate();
+      return requestWrapper(options);
     }
 
     return {
-      getLastUnansweredReview: function ({stars, businessUnitId}) {
+      getLastUnansweredReview: async function ({
+        stars,
+        businessUnitId,
+      }) {
         const params = {
           orderBy: 'createdat.desc',
           responded: false,
@@ -34,20 +36,22 @@ module.exports = function (config) {
           params.stars = stars;
         }
         businessUnitId = businessUnitId || BUSINESS_UNIT_ID;
-        return privateRequest({
+        const data = await privateRequest({
           method: 'GET',
           uri: `/v1/private/business-units/${businessUnitId}/reviews`,
           qs: params,
-        }).then((data) => {
-          if (data.reviews.length > 0) {
-            return data.reviews[0];
-          }
-
-          return null;
         });
+        if (data.reviews.length > 0) {
+          return data.reviews[0];
+        }
+
+        return null;
       },
 
-      replyToReview: function ({reviewId, message}) {
+      replyToReview: function ({
+        reviewId,
+        message,
+      }) {
         return privateRequest({
           method: 'POST',
           uri: `/v1/private/reviews/${reviewId}/reply`,
