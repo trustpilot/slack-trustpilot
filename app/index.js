@@ -15,7 +15,7 @@ const trustpilotApi = require('./trustpilot-api')(config);
 const storageEngine = require('./storage-engine');
 const slackapp = require('./slackapp.js')(config, trustpilotApi, storageEngine);
 const webserverExtensions = require('./webserver-extensions');
-const oAuthCallback = require('./oauth-callback');
+const oAuthCallback = require('./oauth-callback')(slackapp);
 
 const PORT = process.env.PORT || 7142;
 
