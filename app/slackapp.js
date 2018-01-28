@@ -1,5 +1,3 @@
-'use strict';
-
 const botkit = require('botkit');
 const _S = require('underscore.string');
 const moment = require('moment');
