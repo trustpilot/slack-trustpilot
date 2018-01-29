@@ -4,9 +4,14 @@
 const localtunnel = require('./localtunnel');
 const teamHandlers = require('./team-handlers');
 const extraRoutes = require('./extra-routes');
+const oAuthCallback = require('./oauth-callback');
 
 module.exports = (slackapp, config, port) => {
   localtunnel(port);
   teamHandlers(slackapp, config);
   extraRoutes(slackapp);
+
+  return {
+    oAuthCallback: oAuthCallback(slackapp),
+  };
 };
