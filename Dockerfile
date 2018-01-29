@@ -8,7 +8,7 @@ WORKDIR /usr/src/slack-trustpilot
 
 RUN yarn
 
-COPY app/* /usr/src/slack-trustpilot/app/
+COPY app/ /usr/src/slack-trustpilot/app/
 
 EXPOSE 7142
 
