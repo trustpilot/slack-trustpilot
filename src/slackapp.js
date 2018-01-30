@@ -5,7 +5,7 @@ const _S = require('underscore.string');
 const moment = require('moment');
 const bluebird = require('bluebird');
 
-function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
+function setupApp(slackapp, config, trustpilotApi) {
 
   /*
     Startup
@@ -123,15 +123,16 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
       if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
         var stars = Number(message.text.split(' ')[0]);
         stars = isNaN(stars) ? null : stars;
-        var slackTeamId = bot.team_info.id;
+      var businessUnitId = bot.team_info.businessUnitId;
 
-        businessUnitProvider.getTeamBusinessUnitId(slackTeamId).then(function (businessUnitId) {
-          trustpilotApi.getLastUnansweredReview({stars, businessUnitId}).then(function (lastReview) {
+      trustpilotApi.getLastUnansweredReview({
+        stars,
+        businessUnitId
+      }).then(function (lastReview) {
             if (lastReview) {
               bot.reply(message, formatReview(lastReview));
             }
           });
-        });
       }
     return true;
   });
@@ -168,13 +169,13 @@ function setupApp(slackapp, config, businessUnitProvider, trustpilotApi) {
   };
 }
 
-module.exports = function (config, businessUnitProvider, trustpilotApi, storage) {
+module.exports = function (config, trustpilotApi, storage) {
   var slackapp = botkit.slackbot({
     'debug': false,
     'storage': storage,
     'json_file_store': './storage/', // Fallback to jfs when no storage middleware provided
     'retry': 2
   });
-  setupApp(slackapp, config, businessUnitProvider, trustpilotApi);
+  setupApp(slackapp, config, trustpilotApi);
   return slackapp;
 };
