@@ -32,7 +32,7 @@ You will also need to get a Verification token for Interactive Messages, to make
 
 ### Configuration
 
-You should now have all the information to configure this app. Just clone this repo and edit the [`src/config.js`](src/config.js) file. The contents should be as follows:
+You should now have all the information to configure this app. Just clone this repo and edit the [`app/config.js`](app/config.js) file. The contents should be as follows:
 
 ```javascript
 module.exports = {

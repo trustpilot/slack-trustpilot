@@ -1,14 +1,14 @@
 FROM mhart/alpine-node:8
 
-RUN mkdir -p /usr/app/slack-trustpilot/src
+RUN mkdir -p /usr/src/slack-trustpilot/app
 
-COPY package.json yarn.lock /usr/app/slack-trustpilot/
+COPY package.json yarn.lock /usr/src/slack-trustpilot/
 
-WORKDIR /usr/app/slack-trustpilot
+WORKDIR /usr/src/slack-trustpilot
 
 RUN yarn
 
-COPY src/* /usr/app/slack-trustpilot/src/
+COPY app/ /usr/src/slack-trustpilot/app/
 
 EXPOSE 7142
 

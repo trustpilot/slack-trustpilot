@@ -6,11 +6,12 @@
   "repository": "https://github.com/trustpilot/slack-trustpilot.git",
   "author": "Trustpilot",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "app/index.js",
   "scripts": {
-    "local": "cross-env ENABLE_LOCAL_TUNNEL=true node src/index.js",
-    "start": "node src/index.js",
-    "test": "eslint '**/*.js'"
+    "local": "cross-env ENABLE_LOCAL_TUNNEL=true node app/index.js",
+    "start": "node app/index.js",
+    "lint": "eslint 'app/**/*.js'",
+    "precommit": "npm run lint"
   },
   "dependencies": {
     "bluebird": "^3.4.6",
@@ -26,8 +27,9 @@
     "babel-eslint": "^7.1.1",
     "cross-env": "^5.1.3",
     "eslint": "^4.11.0",
-    "eslint-config-trustpilot": "^1.7.0",
+    "eslint-config-trustpilot": "^3.2.1",
     "eslint-plugin-babel": "^4.1.0",
+    "husky": "^0.14.3",
     "localtunnel": "^1.8.3"
   }
 }
