@@ -2,9 +2,7 @@
  Storage engine for MongoDB.
 
  To use this, point the environment variable MONGO_URI to the URI for your Mongo cluster.
- Then, edit the storage-engine/index.js file so that it has the following code:
-
- module.exports = require('./mongo-storage');
+ Also make sure that the configuration variable BOTKIT_STORAGE_TYPE has the value 'mongodb'
 */
 module.exports = require('botkit-storage-mongo')({
   mongoUri: process.env.MONGO_URI,

@@ -4,4 +4,11 @@
  See botkit's documentation for storage options:
  https://github.com/howdyai/botkit/blob/6050388fbe051af2546fc5e3fb1ae428231901f7/readme-middlewares.md#storage-modules
 */
-module.exports = null;
+module.exports = (engineType = 'file') => {
+  if (engineType === 'file') {
+    return null;
+  } else {
+    // eslint-disable-next-line global-require
+    return require(`./${engineType}`);
+  }
+};
