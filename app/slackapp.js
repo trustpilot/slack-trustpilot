@@ -16,7 +16,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
 
-  slackapp.on('tick', () => {});
+  slackapp.on('tick', () => { });
 
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
@@ -59,6 +59,23 @@ function setupApp(slackapp, config, trustpilotApi) {
         }],
       }],
     };
+  }
+
+  async function handleReviewQuery(bot, sourceMessage) {
+    let stars = Number(sourceMessage.text.split(' ')[0]);
+    stars = isNaN(stars) ? null : stars;
+    const team = bot.team_info;
+    const businessUnitId = team.businessUnitId;
+    const lastReview = await trustpilotApi.getLastUnansweredReview({
+      stars,
+      businessUnitId,
+    });
+
+    if (lastReview) {
+      bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
+      bot.replyAsync(sourceMessage, formatReview(lastReview));
+      return true;
+    }
   }
 
   function askForReply(bot, message) {
@@ -122,17 +139,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-      let stars = Number(message.text.split(' ')[0]);
-      stars = isNaN(stars) ? null : stars;
-      const businessUnitId = bot.team_info.businessUnitId;
-
-      const lastReview = await trustpilotApi.getLastUnansweredReview({
-        stars,
-        businessUnitId,
-      });
-      if (lastReview) {
-        bot.reply(message, formatReview(lastReview));
-      }
+      return handleReviewQuery(bot, message);
     }
     return true;
   });
