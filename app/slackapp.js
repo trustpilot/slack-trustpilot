@@ -1,7 +1,6 @@
 const botkit = require('botkit');
-const _S = require('underscore.string');
-const moment = require('moment');
 const bluebird = require('bluebird');
+const { composeReviewMessage } = require('./review-message');
 
 function setupApp(slackapp, config, trustpilotApi) {
 
@@ -34,34 +33,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     Internal workings
   */
 
-  function formatReview(review) {
-    const stars = _S.repeat('★', review.stars) + _S.repeat('✩', 5 - review.stars);
-    const reviewMoment = moment(review.createdAt);
-    const color = (review.stars >= 4) ? 'good' : (review.stars <= 2) ? 'danger' : 'warning';
-
-    return {
-      'text': '',
-      'attachments': [{
-        'callback_id': review.id,
-        'attachment_type': 'default',
-        'fallback': '',
-        'author_name': review.consumer.displayName,
-        'title': review.title,
-        'text': review.text,
-        'color': color,
-        'footer': stars,
-        'ts': reviewMoment.format('X'),
-        'actions': [{
-          'name': 'step_1_write_reply',
-          'text': ':writing_hand: Reply',
-          'value': 'step_1_write_reply',
-          'type': 'button',
-        }],
-      }],
-    };
-  }
-
-  async function handleReviewQuery(bot, sourceMessage) {
+  const handleReviewQuery = async (bot, sourceMessage) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
     stars = isNaN(stars) ? null : stars;
     const team = bot.team_info;
@@ -73,10 +45,10 @@ function setupApp(slackapp, config, trustpilotApi) {
 
     if (lastReview) {
       bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
-      bot.replyAsync(sourceMessage, formatReview(lastReview));
+      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, { canReply: true }));
       return true;
     }
-  }
+  };
 
   function askForReply(bot, message) {
     const originalTs = message.original_message.ts;
@@ -167,7 +139,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     slackapp.findTeamById(teamId, (err, team) => {
       if (!err && team) {
         const bot = slackapp.spawn(team);
-        const message = formatReview(review);
+        const message = composeReviewMessage(review, { canReply: true });
         message.username = bot.config.bot.name; // Confusing, but such is life
         message.channel = bot.config.incoming_webhook.channel;
         bot.send(message);
