@@ -1,0 +1,8 @@
+.vscode
+.editorconfig
+.eslintrc
+.travis.yml
+node_modules/*
+npm-debug.log
+yarn-error.log
+.DS_store

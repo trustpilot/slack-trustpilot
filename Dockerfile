@@ -1,15 +1,20 @@
 FROM mhart/alpine-node:8
 
-RUN mkdir -p /usr/src/slack-trustpilot/app
+WORKDIR /app
 
-COPY package.json yarn.lock /usr/src/slack-trustpilot/
+COPY package.json yarn.lock /app/
 
-WORKDIR /usr/src/slack-trustpilot
+RUN yarn install --production
 
-RUN yarn
+# Multi-stage build! We copy the modules over to this slimmer base image and install the app on top.
+FROM mhart/alpine-node:base-8
 
-COPY app/ /usr/src/slack-trustpilot/app/
+WORKDIR /app
+
+COPY --from=0 /app .
+
+COPY app/ .
 
 EXPOSE 7142
 
-CMD [ "npm", "start" ]
+CMD [ "node", "index.js" ]
