@@ -1,7 +1,6 @@
 const botkit = require('botkit');
-const _S = require('underscore.string');
-const moment = require('moment');
 const bluebird = require('bluebird');
+const { composeReviewMessage } = require('./review-message');
 
 function setupApp(slackapp, config, trustpilotApi) {
 
@@ -16,7 +15,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
 
-  slackapp.on('tick', () => {});
+  slackapp.on('tick', () => { });
 
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
@@ -34,32 +33,22 @@ function setupApp(slackapp, config, trustpilotApi) {
     Internal workings
   */
 
-  function formatReview(review) {
-    const stars = _S.repeat('★', review.stars) + _S.repeat('✩', 5 - review.stars);
-    const reviewMoment = moment(review.createdAt);
-    const color = (review.stars >= 4) ? 'good' : (review.stars <= 2) ? 'danger' : 'warning';
+  const handleReviewQuery = async (bot, sourceMessage) => {
+    let stars = Number(sourceMessage.text.split(' ')[0]);
+    stars = isNaN(stars) ? null : stars;
+    const team = bot.team_info;
+    const businessUnitId = team.businessUnitId;
+    const lastReview = await trustpilotApi.getLastUnansweredReview({
+      stars,
+      businessUnitId,
+    });
 
-    return {
-      'text': '',
-      'attachments': [{
-        'callback_id': review.id,
-        'attachment_type': 'default',
-        'fallback': '',
-        'author_name': review.consumer.displayName,
-        'title': review.title,
-        'text': review.text,
-        'color': color,
-        'footer': stars,
-        'ts': reviewMoment.format('X'),
-        'actions': [{
-          'name': 'step_1_write_reply',
-          'text': ':writing_hand: Reply',
-          'value': 'step_1_write_reply',
-          'type': 'button',
-        }],
-      }],
-    };
-  }
+    if (lastReview) {
+      bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
+      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, { canReply: true }));
+      return true;
+    }
+  };
 
   function askForReply(bot, message) {
     const originalTs = message.original_message.ts;
@@ -122,17 +111,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-      let stars = Number(message.text.split(' ')[0]);
-      stars = isNaN(stars) ? null : stars;
-      const businessUnitId = bot.team_info.businessUnitId;
-
-      const lastReview = await trustpilotApi.getLastUnansweredReview({
-        stars,
-        businessUnitId,
-      });
-      if (lastReview) {
-        bot.reply(message, formatReview(lastReview));
-      }
+      return handleReviewQuery(bot, message);
     }
     return true;
   });
@@ -160,7 +139,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     slackapp.findTeamById(teamId, (err, team) => {
       if (!err && team) {
         const bot = slackapp.spawn(team);
-        const message = formatReview(review);
+        const message = composeReviewMessage(review, { canReply: true });
         message.username = bot.config.bot.name; // Confusing, but such is life
         message.channel = bot.config.incoming_webhook.channel;
         bot.send(message);
