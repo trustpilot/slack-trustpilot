@@ -13,5 +13,5 @@ module.exports = {
   'BOTKIT_STORAGE_TYPE': process.env.BOTKIT_STORAGE_TYPE || 'file',
   'PORT': process.env.PORT || '7142',
   'API_HOST': process.env.API_HOST || 'https://api.trustpilot.com',
-  'ENABLE_LOCAL_TUNNEL': process.env.ENABLE_LOCAL_TUNNEL || 'false',
+  'ENABLE_LOCAL_TUNNEL': process.env.ENABLE_LOCAL_TUNNEL,
 };
