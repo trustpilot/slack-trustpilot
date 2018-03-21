@@ -20,7 +20,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
     slackapp.startTicking();
-    bluebird.promisifyAll(bot);
+    bot.startPrivateConversationAsync = bluebird.promisify(bot.startPrivateConversation);
 
     const convo = await bot.startPrivateConversationAsync({
       user: config.createdBy,
@@ -51,11 +51,10 @@ function setupApp(slackapp, config, trustpilotApi) {
   };
 
   function askForReply(bot, message) {
-    const originalTs = message.original_message.ts;
-    const reviewId = message.original_message.attachments[0].callback_id;
     const dialog = bot.createDialog('Reply to a review', JSON.stringify({
-      originalTs,
-      reviewId,
+      dialogType: 'review_reply',
+      originalTs: message.message_ts,
+      reviewId: message.callback_id,
     }), 'Send')
       .addTextarea('Your reply', 'reply');
 
@@ -66,13 +65,11 @@ function setupApp(slackapp, config, trustpilotApi) {
     });
   }
 
-  async function handleReply(bot, message) {
-    const callbackData = JSON.parse(message.callback_id);
-    const originalTs = callbackData.originalTs;
-    const reviewId = callbackData.reviewId;
+  const handleReply = async (bot, message) => {
+    const { originalTs, reviewId } = JSON.parse(message.callback_id);
     const errorReaction = {
       timestamp: originalTs,
-      channel: message.channel.id,
+      channel: message.channel,
       name: 'boom',
     };
 
@@ -88,21 +85,17 @@ function setupApp(slackapp, config, trustpilotApi) {
         attachments: [{
           'attachment_type': 'default',
           'fallback': '',
-          'author_name': message.user.name,
+          'author_name': message.raw_message.user.name,
           'text': message.submission.reply,
           'ts': message.action_ts,
         }],
       });
       bot.api.reactions.remove(errorReaction);
     } catch (e) {
-      bot.sendEphemeral({
-        user: message.user.id,
-        channel: message.channel.id,
-        text: 'Something went wrong while sending your reply! Please try again shortly.',
-      });
+      bot.whisper(message, 'Something went wrong while sending your reply! Please try again shortly.');
       bot.api.reactions.add(errorReaction);
     }
-  }
+  };
 
   /*
     Entry points
@@ -125,10 +118,13 @@ function setupApp(slackapp, config, trustpilotApi) {
   });
 
   slackapp.on('dialog_submission', (bot, message) => {
-    // Tell Slack right away that the dialog can be dismissed
     bot.dialogOk();
-    handleReply(bot, message.raw_message);
-    return true;
+    const { dialogType } = JSON.parse(message.callback_id);
+    if (dialogType === 'review_reply') {
+      return handleReply(bot, message);
+    } else {
+      return true;
+    }
   });
 
   /*
