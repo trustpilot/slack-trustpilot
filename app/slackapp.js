@@ -32,12 +32,17 @@ function setupApp(slackapp, config, trustpilotApi) {
   /*
     Internal workings
   */
+  const getTeamFeeds = (team) => team.feeds || [{ channelId: team.incoming_webhook.channel_id, canReply: true }];
 
   const handleReviewQuery = async (bot, sourceMessage) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
     stars = isNaN(stars) ? null : stars;
     const team = bot.team_info;
     const businessUnitId = team.businessUnitId;
+    const feeds = getTeamFeeds(team);
+    const canReply = feeds.filter(({ channelId }) => channelId === sourceMessage.channel)
+      .reduce((_, { canReply }) => !!canReply, false);
+
     const lastReview = await trustpilotApi.getLastUnansweredReview({
       stars,
       businessUnitId,
@@ -45,7 +50,9 @@ function setupApp(slackapp, config, trustpilotApi) {
 
     if (lastReview) {
       bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
-      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, { canReply: true }));
+      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, {
+        canReply,
+      }));
       return true;
     }
   };
@@ -131,14 +138,21 @@ function setupApp(slackapp, config, trustpilotApi) {
     Incoming webhook plumbing
   */
 
-  slackapp.postNewReview = function (review, teamId) {
-    slackapp.findTeamById(teamId, (err, team) => {
-      if (!err && team) {
-        const bot = slackapp.spawn(team);
-        const message = composeReviewMessage(review, { canReply: true });
-        message.username = bot.config.bot.name; // Confusing, but such is life
-        message.channel = bot.config.incoming_webhook.channel;
-        bot.send(message);
+  slackapp.postNewReview = async (review, teamId) => {
+    slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || bluebird.promisify(slackapp.findTeamById);
+    const team = await slackapp.findTeamByIdAsync(teamId);
+    const bot = slackapp.spawn(team);
+    bot.team_info = team; // eslint-disable-line camelcase
+    const feeds = getTeamFeeds(team);
+
+    feeds.forEach(async ({ channelId, canReply }) => {
+      const message = composeReviewMessage(review, { canReply });
+      message.username = bot.config.bot.name; // Confusing, but such is life
+      message.channel = channelId;
+      bot.sendAsync = bot.sendAsync || bluebird.promisify(bot.send);
+      const { ok: sentOk, ts, channel } = await bot.sendAsync(message);
+      if (sentOk) {
+        slackapp.trigger('trustpilot_review_posted', [bot, { ts, channel, reviewId: review.id }]);
       }
     });
   };
