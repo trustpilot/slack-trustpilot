@@ -87,7 +87,7 @@ function setupApp(slackapp, config, trustpilotApi) {
       });
       bot.say({
         'thread_ts': originalTs,
-        channel: message.channel.id,
+        channel: message.channel,
         text: '',
         attachments: [{
           'attachment_type': 'default',
