@@ -34,14 +34,19 @@ function setupApp(slackapp, config, trustpilotApi) {
   */
   const getTeamFeeds = (team) => team.feeds || [{ channelId: team.incoming_webhook.channel_id, canReply: true }];
 
+  const getChannelFeedSettings = (team, targetChannelId) => {
+    const feeds = getTeamFeeds(team);
+    const channelSettings = feeds.find(({ channelId }) => channelId === targetChannelId);
+    const { canReply = false } = { ...channelSettings };
+    return { canReply };
+  };
+
   const handleReviewQuery = async (bot, sourceMessage) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
     stars = isNaN(stars) ? null : stars;
     const team = bot.team_info;
     const businessUnitId = team.businessUnitId;
-    const feeds = getTeamFeeds(team);
-    const canReply = feeds.filter(({ channelId }) => channelId === sourceMessage.channel)
-      .reduce((_, { canReply }) => !!canReply, false);
+    const { canReply } = getChannelFeedSettings(team, sourceMessage.channel);
 
     const lastReview = await trustpilotApi.getLastUnansweredReview({
       stars,
