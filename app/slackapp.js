@@ -1,9 +1,9 @@
 const botkit = require('botkit');
 const bluebird = require('bluebird');
 const { composeReviewMessage } = require('./review-message');
+const { fillInInteractiveMessage, makeInteractiveMessage } = require('./interactive-message');
 
 function setupApp(slackapp, config, trustpilotApi) {
-
   /*
     Startup
   */
@@ -11,11 +11,11 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.configureSlackApp({
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
-    'rtm_receive_messages': false,
+    rtm_receive_messages: false, // eslint-disable-line camelcase
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
 
-  slackapp.on('tick', () => { });
+  slackapp.on('tick', () => {});
 
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
@@ -55,19 +55,27 @@ function setupApp(slackapp, config, trustpilotApi) {
 
     if (lastReview) {
       bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
-      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, {
+      bot.replyAsync(
+        sourceMessage,
+        composeReviewMessage(lastReview, {
         canReply,
-      }));
+        })
+      );
       return true;
     }
   };
 
   function askForReply(bot, message) {
-    const dialog = bot.createDialog('Reply to a review', JSON.stringify({
+    const dialog = bot
+      .createDialog(
+        'Reply to a review',
+        JSON.stringify({
       dialogType: 'review_reply',
       originalTs: message.message_ts,
       reviewId: message.callback_id,
-    }), 'Send')
+        }),
+        'Send'
+      )
       .addTextarea('Your reply', 'reply');
 
     bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
@@ -90,18 +98,19 @@ function setupApp(slackapp, config, trustpilotApi) {
         reviewId,
         message: message.submission.reply,
       });
-      bot.say({
-        'thread_ts': originalTs,
+      bot.say(
+        fillInInteractiveMessage({
+          thread_ts: originalTs, // eslint-disable-line camelcase
         channel: message.channel,
-        text: '',
-        attachments: [{
-          'attachment_type': 'default',
-          'fallback': '',
-          'author_name': message.raw_message.user.name,
-          'text': message.submission.reply,
-          'ts': message.action_ts,
-        }],
-      });
+          attachments: [
+            {
+              author_name: message.raw_message.user.name, // eslint-disable-line camelcase
+              text: message.submission.reply,
+              ts: message.action_ts,
+            },
+          ],
+        })
+      );
       bot.api.reactions.remove(errorReaction);
     } catch (e) {
       bot.whisper(message, 'Something went wrong while sending your reply! Please try again shortly.');
@@ -173,11 +182,12 @@ function setupApp(slackapp, config, trustpilotApi) {
 }
 
 module.exports = function (config, trustpilotApi, storage) {
+  // Fallback to jfs when no storage middleware provided
   const slackapp = botkit.slackbot({
-    'debug': false,
-    'storage': storage,
-    'json_file_store': './storage/', // Fallback to jfs when no storage middleware provided
-    'retry': 2,
+    debug: false,
+    storage: storage,
+    json_file_store: './storage/', // eslint-disable-line camelcase
+    retry: 2,
   });
   setupApp(slackapp, config, trustpilotApi);
   return slackapp;
