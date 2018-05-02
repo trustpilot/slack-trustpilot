@@ -37,8 +37,11 @@ function setupApp(slackapp, config, trustpilotApi) {
   const getChannelFeedSettings = (team, targetChannelId) => {
     const feeds = getTeamFeeds(team);
     const channelSettings = feeds.find(({ channelId }) => channelId === targetChannelId);
-    const { canReply = false } = { ...channelSettings };
-    return { canReply };
+    return channelSettings;
+  };
+
+  const areSettingsPresentForChannel = (team, targetChannelId) => {
+    return !!getChannelFeedSettings(team, targetChannelId);
   };
 
   const handleReviewQuery = async (bot, sourceMessage) => {
@@ -118,6 +121,65 @@ function setupApp(slackapp, config, trustpilotApi) {
     }
   };
 
+
+  const showFeedSettingsIntroMessage = (message, bot) => {
+    if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
+      bot.replyInteractive(
+        message,
+        makeInteractiveMessage({
+          text: 'You can control how you receive Trustpilot reviews on this channel.',
+          actions: [
+            {
+              value: 'delete_feed_settings',
+              text: 'Stop receiving reviews',
+              style: 'danger',
+              confirm: {
+                title: 'Are you sure?',
+                text: ' You will no longer receive reviews in this channel.',
+              },
+            },
+            {
+              value: 'open_feed_settings',
+              text: 'Change settings',
+            },
+          ],
+        })
+      );
+    } else {
+      bot.replyInteractive(
+        message,
+        makeInteractiveMessage({
+          text:
+            'You can receive Trustpilot reviews on this channel. ' +
+            'Click the button below to control how they will appear.',
+          actions: [
+            {
+              value: 'open_feed_settings',
+              text: 'Start receiving reviews',
+              style: 'primary',
+            },
+          ],
+        })
+      );
+    }
+  };
+  const handleSettingsCommand = async (bot, message) => {
+    bot.api.users.infoAsync = bot.api.users.infoAsync || bluebird.promisify(bot.api.users.info);
+    try {
+      const { ok: userOk, user } = await bot.api.users.infoAsync({
+        user: message.user_id,
+      });
+      if (userOk && user.is_admin) {
+        showFeedSettingsIntroMessage(message, bot);
+      } else {
+        bot.whisper(message, 'Sorry, only administrators can do that');
+      }
+    } catch (error) {
+      bot.whisper(message, 'Oops, something went wrong. Try again?');
+    }
+    return true;
+  };
+
   /*
     Entry points
   */
@@ -126,8 +188,11 @@ function setupApp(slackapp, config, trustpilotApi) {
     bot.replyAcknowledge();
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
       return handleReviewQuery(bot, message);
+    } else if (message.text === 'settings' || message.text === 'feed') {
+      return handleSettingsCommand(bot, message);
+    } else {
+      return true;
     }
-    return true;
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
