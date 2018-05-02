@@ -155,9 +155,18 @@ function setupApp(slackapp, config, trustpilotApi) {
       const message = composeReviewMessage(review, { canReply });
       message.username = bot.config.bot.name; // Confusing, but such is life
       message.channel = channelId;
-      const { ok: sentOk, ts, channel } = await bot.sendAsync(message);
-      if (sentOk) {
-        slackapp.trigger('trustpilot_review_posted', [bot, { ts, channel, reviewId: review.id }]);
+      try {
+        const { ok: sentOk, ts, channel } = await bot.sendAsync(message);
+        if (sentOk) {
+          slackapp.trigger('trustpilot_review_posted', [bot, { ts, channel, reviewId: review.id }]);
+        }
+      } catch (e) {
+        if (e.message === 'account_inactive') {
+          // Integration removed, just do a bit of clean up.
+          team.feeds = [];
+          slackapp.storage.teams.save(team);
+        }
+        slackapp.log.error(e);
       }
     });
   };
