@@ -15,7 +15,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
 
-  slackapp.on('tick', () => {});
+  slackapp.on('tick', () => { });
 
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
@@ -40,6 +40,10 @@ function setupApp(slackapp, config, trustpilotApi) {
     return channelSettings;
   };
 
+  const getChannelFeedSettingsOrDefault = (team, targetChannelId) => {
+    return getChannelFeedSettings(team, targetChannelId) || { canReply: false };
+  };
+
   const areSettingsPresentForChannel = (team, targetChannelId) => {
     return !!getChannelFeedSettings(team, targetChannelId);
   };
@@ -61,7 +65,7 @@ function setupApp(slackapp, config, trustpilotApi) {
       bot.replyAsync(
         sourceMessage,
         composeReviewMessage(lastReview, {
-        canReply,
+          canReply,
         })
       );
       return true;
@@ -73,9 +77,9 @@ function setupApp(slackapp, config, trustpilotApi) {
       .createDialog(
         'Reply to a review',
         JSON.stringify({
-      dialogType: 'review_reply',
-      originalTs: message.message_ts,
-      reviewId: message.callback_id,
+          dialogType: 'review_reply',
+          originalTs: message.message_ts,
+          reviewId: message.callback_id,
         }),
         'Send'
       )
@@ -104,7 +108,7 @@ function setupApp(slackapp, config, trustpilotApi) {
       bot.say(
         fillInInteractiveMessage({
           thread_ts: originalTs, // eslint-disable-line camelcase
-        channel: message.channel,
+          channel: message.channel,
           attachments: [
             {
               author_name: message.raw_message.user.name, // eslint-disable-line camelcase
@@ -121,21 +125,43 @@ function setupApp(slackapp, config, trustpilotApi) {
     }
   };
 
+  const showFeedSettings = (message, bot) => {
+    const team = bot.team_info;
+    const { canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
+    const dialog = bot
+      .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings' }), 'Save')
+      .addSelect(
+        'In-channel reply',
+        'replyFeature',
+        canReply ? 'on' : 'off',
+        [
+          { label: 'Allow users to reply to reviews', value: 'on' },
+          {
+            label: 'Do not allow users to reply to reviews', value: 'off',
+          },
+        ]
+      );
+    bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
+      if (err) {
+        console.log(err, res);
+      }
+    });
+  };
 
   const showFeedSettingsIntroMessage = (message, bot) => {
     if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
       bot.replyInteractive(
         message,
         makeInteractiveMessage({
-          text: 'You can control how you receive Trustpilot reviews on this channel.',
+          text: 'Manage your review settings for this channel.',
           actions: [
             {
               value: 'delete_feed_settings',
-              text: 'Stop receiving reviews',
+              text: 'Stop posting reviews',
               style: 'danger',
               confirm: {
                 title: 'Are you sure?',
-                text: ' You will no longer receive reviews in this channel.',
+                text: ' You will no longer see your Trustpilot reviews in this channel.',
               },
             },
             {
@@ -150,12 +176,12 @@ function setupApp(slackapp, config, trustpilotApi) {
         message,
         makeInteractiveMessage({
           text:
-            'You can receive Trustpilot reviews on this channel. ' +
-            'Click the button below to control how they will appear.',
+            'Get your Trustpilot reviews posted on this channel. ' +
+            'Click the button below to manage your review settings.',
           actions: [
             {
               value: 'open_feed_settings',
-              text: 'Start receiving reviews',
+              text: 'Post reviews here',
               style: 'primary',
             },
           ],
@@ -163,6 +189,57 @@ function setupApp(slackapp, config, trustpilotApi) {
       );
     }
   };
+
+  const upsertFeedSettings = (team, channelId, settings) => {
+    const feeds = team.feeds || [];
+    // Using a Map to upsert the new settings
+    const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
+    const oldSettings = feedsMap.get(channelId);
+    feedsMap.set(channelId, oldSettings ? { ...oldSettings, ...settings } : settings);
+    team.feeds = [...feedsMap.values()];
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    return slackapp.saveTeamAsync(team);
+  };
+
+  const handleNewFeedSettings = async (bot, message) => {
+    const {
+      channel: channelId,
+      submission: { replyFeature },
+    } = message;
+    const team = bot.team_info;
+    const businessUnitId = team.businessUnitId;
+    const newSettings = {
+      channelId,
+      businessUnitId,
+      canReply: replyFeature === 'on',
+    };
+    await upsertFeedSettings(team, channelId, newSettings);
+    if (newSettings.canReply) {
+      bot.whisper(
+        message,
+        'All set! Users on this channel can reply to reviews.'
+      );
+    } else {
+      bot.whisper(
+        message,
+        'Settings saved! The reply button is not available to users in this channel.'
+      );
+    }
+  };
+
+  const deleteFeedSettings = async (message, bot) => {
+    const { channel: channelId } = message;
+    const team = bot.team_info;
+    const feeds = team.feeds;
+    // Using a Map to upsert the new settings
+    const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
+    feedsMap.delete(channelId);
+    team.feeds = [...feedsMap.values()];
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    await slackapp.saveTeamAsync(team);
+    showFeedSettingsIntroMessage(message, bot);
+  };
+
   const handleSettingsCommand = async (bot, message) => {
     bot.api.users.infoAsync = bot.api.users.infoAsync || bluebird.promisify(bot.api.users.info);
     try {
@@ -197,8 +274,18 @@ function setupApp(slackapp, config, trustpilotApi) {
 
   slackapp.on('interactive_message_callback', (bot, message) => {
     bot.replyAcknowledge();
-    if (message.actions[0].value === 'step_1_write_reply') {
-      askForReply(bot, message);
+    const messageAction = message.actions[0].value;
+    if (messageAction === 'step_1_write_reply') {
+      const { canReply } = getChannelFeedSettings(bot.team_info, message.channel);
+      if (!canReply) {
+        bot.whisper(message, 'Sorry, it’s no longer possible to reply to reviews from this channel.');
+      } else {
+        askForReply(bot, message);
+      }
+    } else if (messageAction === 'open_feed_settings') {
+      showFeedSettings(message, bot);
+    } else if (messageAction === 'delete_feed_settings') {
+      deleteFeedSettings(message, bot);
     }
     return true;
   });
@@ -208,6 +295,8 @@ function setupApp(slackapp, config, trustpilotApi) {
     const { dialogType } = JSON.parse(message.callback_id);
     if (dialogType === 'review_reply') {
       return handleReply(bot, message);
+    } else if (dialogType === 'feed_settings') {
+      return handleNewFeedSettings(bot, message);
     } else {
       return true;
     }
