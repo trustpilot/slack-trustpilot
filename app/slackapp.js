@@ -1,9 +1,9 @@
 const botkit = require('botkit');
 const bluebird = require('bluebird');
 const { composeReviewMessage } = require('./review-message');
+const { fillInInteractiveMessage, makeInteractiveMessage } = require('./interactive-message');
 
 function setupApp(slackapp, config, trustpilotApi) {
-
   /*
     Startup
   */
@@ -11,7 +11,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.configureSlackApp({
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
-    'rtm_receive_messages': false,
+    rtm_receive_messages: false, // eslint-disable-line camelcase
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
 
@@ -37,8 +37,15 @@ function setupApp(slackapp, config, trustpilotApi) {
   const getChannelFeedSettings = (team, targetChannelId) => {
     const feeds = getTeamFeeds(team);
     const channelSettings = feeds.find(({ channelId }) => channelId === targetChannelId);
-    const { canReply = false } = { ...channelSettings };
-    return { canReply };
+    return channelSettings;
+  };
+
+  const getChannelFeedSettingsOrDefault = (team, targetChannelId) => {
+    return getChannelFeedSettings(team, targetChannelId) || { canReply: false };
+  };
+
+  const areSettingsPresentForChannel = (team, targetChannelId) => {
+    return !!getChannelFeedSettings(team, targetChannelId);
   };
 
   const handleReviewQuery = async (bot, sourceMessage) => {
@@ -55,19 +62,27 @@ function setupApp(slackapp, config, trustpilotApi) {
 
     if (lastReview) {
       bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
-      bot.replyAsync(sourceMessage, composeReviewMessage(lastReview, {
-        canReply,
-      }));
+      bot.replyAsync(
+        sourceMessage,
+        composeReviewMessage(lastReview, {
+          canReply,
+        })
+      );
       return true;
     }
   };
 
   function askForReply(bot, message) {
-    const dialog = bot.createDialog('Reply to a review', JSON.stringify({
-      dialogType: 'review_reply',
-      originalTs: message.message_ts,
-      reviewId: message.callback_id,
-    }), 'Send')
+    const dialog = bot
+      .createDialog(
+        'Reply to a review',
+        JSON.stringify({
+          dialogType: 'review_reply',
+          originalTs: message.message_ts,
+          reviewId: message.callback_id,
+        }),
+        'Send'
+      )
       .addTextarea('Your reply', 'reply');
 
     bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
@@ -90,23 +105,156 @@ function setupApp(slackapp, config, trustpilotApi) {
         reviewId,
         message: message.submission.reply,
       });
-      bot.say({
-        'thread_ts': originalTs,
-        channel: message.channel,
-        text: '',
-        attachments: [{
-          'attachment_type': 'default',
-          'fallback': '',
-          'author_name': message.raw_message.user.name,
-          'text': message.submission.reply,
-          'ts': message.action_ts,
-        }],
-      });
+      bot.say(
+        fillInInteractiveMessage({
+          thread_ts: originalTs, // eslint-disable-line camelcase
+          channel: message.channel,
+          attachments: [
+            {
+              author_name: message.raw_message.user.name, // eslint-disable-line camelcase
+              text: message.submission.reply,
+              ts: message.action_ts,
+            },
+          ],
+        })
+      );
       bot.api.reactions.remove(errorReaction);
     } catch (e) {
       bot.whisper(message, 'Something went wrong while sending your reply! Please try again shortly.');
       bot.api.reactions.add(errorReaction);
     }
+  };
+
+  const showFeedSettings = (message, bot) => {
+    const team = bot.team_info;
+    const { canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
+    const dialog = bot
+      .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings' }), 'Save')
+      .addSelect(
+        'In-channel reply',
+        'replyFeature',
+        canReply ? 'on' : 'off',
+        [
+          { label: 'Allow users to reply to reviews', value: 'on' },
+          {
+            label: 'Do not allow users to reply to reviews', value: 'off',
+          },
+        ]
+      );
+    bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
+      if (err) {
+        console.log(err, res);
+      }
+    });
+  };
+
+  const showFeedSettingsIntroMessage = (message, bot) => {
+    if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
+      bot.replyInteractive(
+        message,
+        makeInteractiveMessage({
+          text: 'Manage your review settings for this channel.',
+          actions: [
+            {
+              value: 'delete_feed_settings',
+              text: 'Stop posting reviews',
+              style: 'danger',
+              confirm: {
+                title: 'Are you sure?',
+                text: ' You will no longer see your Trustpilot reviews in this channel.',
+              },
+            },
+            {
+              value: 'open_feed_settings',
+              text: 'Change settings',
+            },
+          ],
+        })
+      );
+    } else {
+      bot.replyInteractive(
+        message,
+        makeInteractiveMessage({
+          text:
+            'Get your Trustpilot reviews posted on this channel. ' +
+            'Click the button below to manage your review settings.',
+          actions: [
+            {
+              value: 'open_feed_settings',
+              text: 'Post reviews here',
+              style: 'primary',
+            },
+          ],
+        })
+      );
+    }
+  };
+
+  const upsertFeedSettings = (team, channelId, settings) => {
+    const feeds = team.feeds || [];
+    // Using a Map to upsert the new settings
+    const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
+    const oldSettings = feedsMap.get(channelId);
+    feedsMap.set(channelId, oldSettings ? { ...oldSettings, ...settings } : settings);
+    team.feeds = [...feedsMap.values()];
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    return slackapp.saveTeamAsync(team);
+  };
+
+  const handleNewFeedSettings = async (bot, message) => {
+    const {
+      channel: channelId,
+      submission: { replyFeature },
+    } = message;
+    const team = bot.team_info;
+    const businessUnitId = team.businessUnitId;
+    const newSettings = {
+      channelId,
+      businessUnitId,
+      canReply: replyFeature === 'on',
+    };
+    await upsertFeedSettings(team, channelId, newSettings);
+    if (newSettings.canReply) {
+      bot.whisper(
+        message,
+        'All set! Users on this channel can reply to reviews.'
+      );
+    } else {
+      bot.whisper(
+        message,
+        'Settings saved! The reply button is not available to users in this channel.'
+      );
+    }
+  };
+
+  const deleteFeedSettings = async (message, bot) => {
+    const { channel: channelId } = message;
+    const team = bot.team_info;
+    const feeds = team.feeds;
+    // Using a Map to upsert the new settings
+    const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
+    feedsMap.delete(channelId);
+    team.feeds = [...feedsMap.values()];
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    await slackapp.saveTeamAsync(team);
+    showFeedSettingsIntroMessage(message, bot);
+  };
+
+  const handleSettingsCommand = async (bot, message) => {
+    bot.api.users.infoAsync = bot.api.users.infoAsync || bluebird.promisify(bot.api.users.info);
+    try {
+      const { ok: userOk, user } = await bot.api.users.infoAsync({
+        user: message.user_id,
+      });
+      if (userOk && user.is_admin) {
+        showFeedSettingsIntroMessage(message, bot);
+      } else {
+        bot.whisper(message, 'Sorry, only administrators can do that');
+      }
+    } catch (error) {
+      bot.whisper(message, 'Oops, something went wrong. Try again?');
+    }
+    return true;
   };
 
   /*
@@ -117,14 +265,27 @@ function setupApp(slackapp, config, trustpilotApi) {
     bot.replyAcknowledge();
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
       return handleReviewQuery(bot, message);
+    } else if (message.text === 'settings' || message.text === 'feed') {
+      return handleSettingsCommand(bot, message);
+    } else {
+      return true;
     }
-    return true;
   });
 
   slackapp.on('interactive_message_callback', (bot, message) => {
     bot.replyAcknowledge();
-    if (message.actions[0].value === 'step_1_write_reply') {
-      askForReply(bot, message);
+    const messageAction = message.actions[0].value;
+    if (messageAction === 'step_1_write_reply') {
+      const { canReply } = getChannelFeedSettings(bot.team_info, message.channel);
+      if (!canReply) {
+        bot.whisper(message, 'Sorry, it’s no longer possible to reply to reviews from this channel.');
+      } else {
+        askForReply(bot, message);
+      }
+    } else if (messageAction === 'open_feed_settings') {
+      showFeedSettings(message, bot);
+    } else if (messageAction === 'delete_feed_settings') {
+      deleteFeedSettings(message, bot);
     }
     return true;
   });
@@ -134,6 +295,8 @@ function setupApp(slackapp, config, trustpilotApi) {
     const { dialogType } = JSON.parse(message.callback_id);
     if (dialogType === 'review_reply') {
       return handleReply(bot, message);
+    } else if (dialogType === 'feed_settings') {
+      return handleNewFeedSettings(bot, message);
     } else {
       return true;
     }
@@ -173,11 +336,12 @@ function setupApp(slackapp, config, trustpilotApi) {
 }
 
 module.exports = function (config, trustpilotApi, storage) {
+  // Fallback to jfs when no storage middleware provided
   const slackapp = botkit.slackbot({
-    'debug': false,
-    'storage': storage,
-    'json_file_store': './storage/', // Fallback to jfs when no storage middleware provided
-    'retry': 2,
+    debug: false,
+    storage: storage,
+    json_file_store: './storage/', // eslint-disable-line camelcase
+    retry: 2,
   });
   setupApp(slackapp, config, trustpilotApi);
   return slackapp;
