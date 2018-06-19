@@ -60,16 +60,18 @@ function setupApp(slackapp, config, trustpilotApi) {
       businessUnitId,
     });
 
-    if (lastReview) {
       bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || bluebird.promisify(bot.replyPrivateDelayed);
+    if (lastReview) {
       await bot.replyPrivateDelayedAsync(
         sourceMessage,
         composeReviewMessage(lastReview, {
           canReply,
         })
       );
-      return true;
+    } else {
+      await bot.replyPrivateDelayedAsync(sourceMessage, 'Sorry, I could not find a matching review.');
     }
+    return true;
   };
 
   function askForReply(bot, message) {
@@ -154,8 +156,9 @@ function setupApp(slackapp, config, trustpilotApi) {
   };
 
   const showFeedSettingsIntroMessage = (message, bot) => {
+    bot.replyInteractiveAsync = bot.replyInteractiveAsync || bluebird.promisify(bot.replyInteractive);
     if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
-      bot.replyInteractive(
+      return bot.replyInteractiveAsync(
         message,
         makeInteractiveMessage({
           text: 'Manage your review settings for this channel.',
@@ -177,7 +180,7 @@ function setupApp(slackapp, config, trustpilotApi) {
         })
       );
     } else {
-      bot.replyInteractive(
+      return bot.replyInteractiveAsync(
         message,
         makeInteractiveMessage({
           text:
@@ -247,17 +250,14 @@ function setupApp(slackapp, config, trustpilotApi) {
 
   const handleSettingsCommand = async (bot, message) => {
     bot.api.users.infoAsync = bot.api.users.infoAsync || bluebird.promisify(bot.api.users.info);
-    try {
       const { ok: userOk, user } = await bot.api.users.infoAsync({
         user: message.user_id,
       });
       if (userOk && user.is_admin) {
-        showFeedSettingsIntroMessage(message, bot);
+      await showFeedSettingsIntroMessage(message, bot);
       } else {
-        bot.whisper(message, 'Sorry, only administrators can do that');
-      }
-    } catch (error) {
-      bot.whisper(message, 'Oops, something went wrong. Try again?');
+      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || bluebird.promisify(bot.replyPrivateDelayed);
+      await bot.replyPrivateDelayedAsync(message, 'Sorry, only administrators can do that');
     }
     return true;
   };
@@ -268,12 +268,16 @@ function setupApp(slackapp, config, trustpilotApi) {
 
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
+    try {
     if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-      return handleReviewQuery(bot, message);
+        return await handleReviewQuery(bot, message);
     } else if (message.text === 'settings' || message.text === 'feed') {
-      return handleSettingsCommand(bot, message);
+        return await handleSettingsCommand(bot, message);
     } else {
       return true;
+    }
+    } catch (err) {
+      console.log(err);
     }
   });
 
