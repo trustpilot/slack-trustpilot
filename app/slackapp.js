@@ -61,8 +61,8 @@ function setupApp(slackapp, config, trustpilotApi) {
     });
 
     if (lastReview) {
-      bot.replyAsync = bot.replyAsync || bluebird.promisify(bot.reply);
-      bot.replyAsync(
+      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || bluebird.promisify(bot.replyPrivateDelayed);
+      await bot.replyPrivateDelayedAsync(
         sourceMessage,
         composeReviewMessage(lastReview, {
           canReply,
