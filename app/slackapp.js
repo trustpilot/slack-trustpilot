@@ -3,7 +3,7 @@ const { promisify } = require('util');
 const { composeReviewMessage } = require('./review-message');
 const { fillInInteractiveMessage, makeInteractiveMessage } = require('./interactive-message');
 
-function setupApp(slackapp, config, trustpilotApi) {
+const setupApp = (slackapp, config, trustpilotApi) => {
   /*
     Startup
   */
@@ -74,7 +74,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     return true;
   };
 
-  function askForReply(bot, message) {
+  const askForReply = (bot, message) => {
     const dialog = bot
       .createDialog(
         'Reply to a review',
@@ -92,7 +92,7 @@ function setupApp(slackapp, config, trustpilotApi) {
         console.log(err, res);
       }
     });
-  }
+  };
 
   const handleReply = async (bot, message) => {
     const { originalTs, reviewId } = JSON.parse(message.callback_id);
@@ -345,9 +345,9 @@ function setupApp(slackapp, config, trustpilotApi) {
       }
     });
   };
-}
+};
 
-module.exports = function (config, trustpilotApi, storage) {
+module.exports = (config, trustpilotApi, storage) => {
   // Fallback to jfs when no storage middleware provided
   const slackapp = botkit.slackbot({
     debug: false,
