@@ -1,5 +1,5 @@
 const botkit = require('botkit');
-const bluebird = require('bluebird');
+const { promisify } = require('util');
 const { composeReviewMessage } = require('./review-message');
 const { fillInInteractiveMessage, makeInteractiveMessage } = require('./interactive-message');
 
@@ -20,7 +20,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.on('create_bot', async (bot, config) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
     slackapp.startTicking();
-    bot.startPrivateConversationAsync = bluebird.promisify(bot.startPrivateConversation);
+    bot.startPrivateConversationAsync = promisify(bot.startPrivateConversation);
 
     const convo = await bot.startPrivateConversationAsync({
       user: config.createdBy,
@@ -60,7 +60,7 @@ function setupApp(slackapp, config, trustpilotApi) {
       businessUnitId,
     });
 
-      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || bluebird.promisify(bot.replyPrivateDelayed);
+    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
     if (lastReview) {
       await bot.replyPrivateDelayedAsync(
         sourceMessage,
@@ -156,7 +156,7 @@ function setupApp(slackapp, config, trustpilotApi) {
   };
 
   const showFeedSettingsIntroMessage = (message, bot) => {
-    bot.replyInteractiveAsync = bot.replyInteractiveAsync || bluebird.promisify(bot.replyInteractive);
+    bot.replyInteractiveAsync = bot.replyInteractiveAsync || promisify(bot.replyInteractive);
     if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
       return bot.replyInteractiveAsync(
         message,
@@ -205,7 +205,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     const oldSettings = feedsMap.get(channelId);
     feedsMap.set(channelId, oldSettings ? { ...oldSettings, ...settings } : settings);
     team.feeds = [...feedsMap.values()];
-    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
     return slackapp.saveTeamAsync(team);
   };
 
@@ -243,20 +243,20 @@ function setupApp(slackapp, config, trustpilotApi) {
     const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
     feedsMap.delete(channelId);
     team.feeds = [...feedsMap.values()];
-    slackapp.saveTeamAsync = slackapp.saveTeamAsync || bluebird.promisify(slackapp.saveTeam);
+    slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
     await slackapp.saveTeamAsync(team);
     showFeedSettingsIntroMessage(message, bot);
   };
 
   const handleSettingsCommand = async (bot, message) => {
-    bot.api.users.infoAsync = bot.api.users.infoAsync || bluebird.promisify(bot.api.users.info);
-      const { ok: userOk, user } = await bot.api.users.infoAsync({
-        user: message.user_id,
-      });
-      if (userOk && user.is_admin) {
+    bot.api.users.infoAsync = bot.api.users.infoAsync || promisify(bot.api.users.info);
+    const { ok: userOk, user } = await bot.api.users.infoAsync({
+      user: message.user_id,
+    });
+    if (userOk && user.is_admin) {
       await showFeedSettingsIntroMessage(message, bot);
-      } else {
-      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || bluebird.promisify(bot.replyPrivateDelayed);
+    } else {
+      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
       await bot.replyPrivateDelayedAsync(message, 'Sorry, only administrators can do that');
     }
     return true;
@@ -269,13 +269,13 @@ function setupApp(slackapp, config, trustpilotApi) {
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
     try {
-    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
+      if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
         return await handleReviewQuery(bot, message);
-    } else if (message.text === 'settings' || message.text === 'feed') {
+      } else if (message.text === 'settings' || message.text === 'feed') {
         return await handleSettingsCommand(bot, message);
-    } else {
-      return true;
-    }
+      } else {
+        return true;
+      }
     } catch (err) {
       console.log(err);
     }
@@ -306,7 +306,7 @@ function setupApp(slackapp, config, trustpilotApi) {
       return handleReply(bot, message);
     } else if (dialogType === 'feed_settings') {
       await handleNewFeedSettings(bot, message);
-      bot.replyInteractiveAsync = bot.replyInteractiveAsync || bluebird.promisify(bot.replyInteractive);
+      bot.replyInteractiveAsync = bot.replyInteractiveAsync || promisify(bot.replyInteractive);
       await showFeedSettingsIntroMessage(sourceMessage, bot);
       return true;
     } else {
@@ -319,11 +319,11 @@ function setupApp(slackapp, config, trustpilotApi) {
   */
 
   slackapp.postNewReview = async (review, teamId) => {
-    slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || bluebird.promisify(slackapp.findTeamById);
+    slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
     const team = await slackapp.findTeamByIdAsync(teamId);
     const bot = slackapp.spawn(team);
     bot.team_info = team; // eslint-disable-line camelcase
-    bot.sendAsync = bot.sendAsync || bluebird.promisify(bot.send);
+    bot.sendAsync = bot.sendAsync || promisify(bot.send);
     const feeds = getTeamFeeds(team);
 
     feeds.forEach(async ({ channelId, canReply }) => {
