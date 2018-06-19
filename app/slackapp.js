@@ -53,7 +53,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     stars = isNaN(stars) ? null : stars;
     const team = bot.team_info;
     const businessUnitId = team.businessUnitId;
-    const { canReply } = getChannelFeedSettings(team, sourceMessage.channel);
+    const { canReply } = getChannelFeedSettingsOrDefault(team, sourceMessage.channel);
 
     const lastReview = await trustpilotApi.getLastUnansweredReview({
       stars,
@@ -276,7 +276,7 @@ function setupApp(slackapp, config, trustpilotApi) {
     bot.replyAcknowledge();
     const messageAction = message.actions[0].value;
     if (messageAction === 'step_1_write_reply') {
-      const { canReply } = getChannelFeedSettings(bot.team_info, message.channel);
+      const { canReply } = getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
       if (!canReply) {
         bot.whisper(message, 'Sorry, it’s no longer possible to reply to reviews from this channel.');
       } else {
