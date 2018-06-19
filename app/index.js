@@ -38,6 +38,10 @@ if (require.main !== module) {
   const Trustpilot = require('trustpilot');
   /* eslint-enable global-require */
 
+  process.on('unhandledRejection', (reason, p) => {
+    console.error('Unhandled Rejection at:', p, 'reason:', reason);
+  });
+
   const trustpilotClient = new Trustpilot({
     apiKey: config.API_KEY,
     secret: config.API_SECRET,
