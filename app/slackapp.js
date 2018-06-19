@@ -128,8 +128,13 @@ function setupApp(slackapp, config, trustpilotApi) {
   const showFeedSettings = (message, bot) => {
     const team = bot.team_info;
     const { canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
+    const sourceMessage = {
+      ts: message.message_ts,
+      response_url: message.response_url, // eslint-disable-line camelcase
+      channel: message.channel,
+    };
     const dialog = bot
-      .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings' }), 'Save')
+      .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings', sourceMessage }), 'Save')
       .addSelect(
         'In-channel reply',
         'replyFeature',
@@ -290,13 +295,16 @@ function setupApp(slackapp, config, trustpilotApi) {
     return true;
   });
 
-  slackapp.on('dialog_submission', (bot, message) => {
+  slackapp.on('dialog_submission', async (bot, message) => {
     bot.dialogOk();
-    const { dialogType } = JSON.parse(message.callback_id);
+    const { dialogType, sourceMessage } = JSON.parse(message.callback_id);
     if (dialogType === 'review_reply') {
       return handleReply(bot, message);
     } else if (dialogType === 'feed_settings') {
-      return handleNewFeedSettings(bot, message);
+      await handleNewFeedSettings(bot, message);
+      bot.replyInteractiveAsync = bot.replyInteractiveAsync || bluebird.promisify(bot.replyInteractive);
+      await showFeedSettingsIntroMessage(sourceMessage, bot);
+      return true;
     } else {
       return true;
     }
