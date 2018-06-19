@@ -268,16 +268,12 @@ const setupApp = (slackapp, config, trustpilotApi) => {
 
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
-    try {
-      if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-        return await handleReviewQuery(bot, message);
-      } else if (message.text === 'settings' || message.text === 'feed') {
-        return await handleSettingsCommand(bot, message);
-      } else {
-        return true;
-      }
-    } catch (err) {
-      console.log(err);
+    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
+      return await handleReviewQuery(bot, message);
+    } else if (message.text === 'settings' || message.text === 'feed') {
+      return await handleSettingsCommand(bot, message);
+    } else {
+      return true;
     }
   });
 
