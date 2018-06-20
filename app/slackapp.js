@@ -238,7 +238,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
   const deleteFeedSettings = async (message, bot) => {
     const { channel: channelId } = message;
     const team = bot.team_info;
-    const feeds = team.feeds;
+    const feeds = team.feeds || [];
     // Using a Map to upsert the new settings
     const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
     feedsMap.delete(channelId);
