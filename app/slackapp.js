@@ -122,7 +122,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
       );
       bot.api.reactions.remove(errorReaction);
     } catch (e) {
-      bot.whisper(message, 'Something went wrong while sending your reply! Please try again shortly.');
+      bot.replyPrivateDelayed(message, 'Something went wrong while sending your reply! Please try again shortly.');
       bot.api.reactions.add(errorReaction);
     }
   };
@@ -223,12 +223,12 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     };
     await upsertFeedSettings(team, channelId, newSettings);
     if (newSettings.canReply) {
-      bot.whisper(
+      await bot.replyPrivateDelayedAsync(
         message,
         'All set! Users on this channel can reply to reviews.'
       );
     } else {
-      bot.whisper(
+      await bot.replyPrivateDelayedAsync(
         message,
         'Settings saved! The reply button is not available to users in this channel.'
       );
@@ -277,13 +277,15 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     }
   });
 
-  slackapp.on('interactive_message_callback', (bot, message) => {
+  slackapp.on('interactive_message_callback', async (bot, message) => {
     bot.replyAcknowledge();
     const messageAction = message.actions[0].value;
     if (messageAction === 'step_1_write_reply') {
       const { canReply } = getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
       if (!canReply) {
-        bot.whisper(message, 'Sorry, it’s no longer possible to reply to reviews from this channel.');
+        bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
+        await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
+          + ' from this channel.');
       } else {
         askForReply(bot, message);
       }
