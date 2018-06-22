@@ -222,15 +222,18 @@ const setupApp = (slackapp, config, trustpilotApi) => {
       canReply: replyFeature === 'on',
     };
     await upsertFeedSettings(team, channelId, newSettings);
+    const privateChannelWarning = channelId.startsWith('G') ? '\nJust one last thing:'
+      + ' this looks like a private channel, so *please /invite me* so I can post reviews here!' : '';
+    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
     if (newSettings.canReply) {
       await bot.replyPrivateDelayedAsync(
         message,
-        'All set! Users on this channel can reply to reviews.'
+        `All set! Users on this channel can reply to reviews.${privateChannelWarning}`
       );
     } else {
       await bot.replyPrivateDelayedAsync(
         message,
-        'Settings saved! The reply button is not available to users in this channel.'
+        `Settings saved! The reply button is not available to users in this channel.${privateChannelWarning}`
       );
     }
   };
@@ -253,10 +256,12 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     const { ok: userOk, user } = await bot.api.users.infoAsync({
       user: message.user_id,
     });
-    if (userOk && user.is_admin) {
+    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
+    if (message.channel_id.startsWith('D')) { // Direct message
+      await bot.replyPrivateDelayedAsync(message, 'Sorry, I can only post your reviews in a proper channel');
+    } else if (userOk && user.is_admin) {
       await showFeedSettingsIntroMessage(message, bot);
     } else {
-      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
       await bot.replyPrivateDelayedAsync(message, 'Sorry, only administrators can do that');
     }
     return true;
