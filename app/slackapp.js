@@ -122,7 +122,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
       );
       bot.api.reactions.remove(errorReaction);
     } catch (e) {
-      bot.whisper(message, 'Something went wrong while sending your reply! Please try again shortly.');
+      bot.replyPrivateDelayed(message, 'Something went wrong while sending your reply! Please try again shortly.');
       bot.api.reactions.add(errorReaction);
     }
   };
@@ -222,15 +222,18 @@ const setupApp = (slackapp, config, trustpilotApi) => {
       canReply: replyFeature === 'on',
     };
     await upsertFeedSettings(team, channelId, newSettings);
+    const privateChannelWarning = channelId.startsWith('G') ? '\nJust one last thing:'
+      + ' this looks like a private channel, so *please /invite me* so I can post reviews here!' : '';
+    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
     if (newSettings.canReply) {
-      bot.whisper(
+      await bot.replyPrivateDelayedAsync(
         message,
-        'All set! Users on this channel can reply to reviews.'
+        `All set! Users on this channel can reply to reviews.${privateChannelWarning}`
       );
     } else {
-      bot.whisper(
+      await bot.replyPrivateDelayedAsync(
         message,
-        'Settings saved! The reply button is not available to users in this channel.'
+        `Settings saved! The reply button is not available to users in this channel.${privateChannelWarning}`
       );
     }
   };
@@ -253,10 +256,12 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     const { ok: userOk, user } = await bot.api.users.infoAsync({
       user: message.user_id,
     });
-    if (userOk && user.is_admin) {
+    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
+    if (message.channel_id.startsWith('D')) { // Direct message
+      await bot.replyPrivateDelayedAsync(message, 'Sorry, I can only post your reviews in a proper channel');
+    } else if (userOk && user.is_admin) {
       await showFeedSettingsIntroMessage(message, bot);
     } else {
-      bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
       await bot.replyPrivateDelayedAsync(message, 'Sorry, only administrators can do that');
     }
     return true;
@@ -277,13 +282,15 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     }
   });
 
-  slackapp.on('interactive_message_callback', (bot, message) => {
+  slackapp.on('interactive_message_callback', async (bot, message) => {
     bot.replyAcknowledge();
     const messageAction = message.actions[0].value;
     if (messageAction === 'step_1_write_reply') {
       const { canReply } = getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
       if (!canReply) {
-        bot.whisper(message, 'Sorry, it’s no longer possible to reply to reviews from this channel.');
+        bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
+        await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
+          + ' from this channel.');
       } else {
         askForReply(bot, message);
       }
