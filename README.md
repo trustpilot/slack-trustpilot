@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/trustpilot/slack-trustpilot.svg?branch=master)](https://travis-ci.org/trustpilot/slack-trustpilot)
 
-Reply to your [Trustpilot](https://www.trustpilot.com/) reviews directly via [Slack](https://slack.com/).
+Read and reply to your [Trustpilot](https://www.trustpilot.com/) reviews directly via [Slack](https://slack.com/). Integrate with [Webhook Notifications](https://businessapp.b2b.trustpilot.com/#/webhooks/) to get your reviews posted automatically in public or private channels.
 
-Trustpilot also provides a hosted version of this project through [Trustpilot Labs](http://blog.trustpilot.com/blog/integrate-trustpilot-reviews-in-slack-another-api-experiment).<br/>Continue here if you prefer your own API integration or would like to customize it.
+Trustpilot also provides a hosted version of this project through [Trustpilot Labs](https://businessapp.b2b.trustpilot.com/#/labs/slack/).<br/>Continue here if you prefer your own API integration or would like to customize it.
 
 ## How does it work?
 
@@ -53,13 +53,14 @@ As you can see, it's also possible to define all your configuration as environme
 
 ### Deploy this app somewhere
 
-This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :) (you can – and maybe should – also run this app in a Docker container. The included [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) should set you off to a good start)
+This is left as an [exercise to the reader](https://devcenter.heroku.com/articles/deploying-nodejs) :). You can – and maybe should – also run this app in a Docker container. The included [`Dockerfile`](Dockerfile) and [`docker-compose.yml`](docker-compose.yml) should set you off to a good start.
 
 Once your app is deployed, the following endpoints should be reachable:
 
 - `https://<your.app.url>/login`, where you will authorize your app for Slack
 - `https://<your.app.url>/oauth`, where Slack will redirect after authorizing your app
 - `https://<your.app.url>/slack/receive`, where Slack will send interactive messages.
+- `https://<your.app.url>/incoming-webhooks/<your-slack-team-id>`, where new reviews can be posted. Use this endpoint to setup Webhook Notifications.
 
 ### Configure your app in Slack
 
@@ -75,10 +76,10 @@ You should now be able to authorize your app by visiting the login endpoint at `
 
 If you don't want to deploy this app just yet, this repo comes with everything you need to run the code locally.
 
-After running the obligatory `npm install`, start the app with:
+After running the obligatory `yarn install`, start the app with:
 
 ```
-npm run local
+yarn run local
 ```
 
 Wait for the localtunnel.me URL to appear in the log messages. This will allow Slack to bridge with your locally running app:
