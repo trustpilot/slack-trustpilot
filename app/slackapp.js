@@ -222,8 +222,8 @@ const setupApp = (slackapp, config, trustpilotApi) => {
       canReply: replyFeature === 'on',
     };
     await upsertFeedSettings(team, channelId, newSettings);
-    const privateChannelWarning = channelId.startsWith('G') ? '\nJust one last thing:'
-      + ' this looks like a private channel, so *please /invite me* so I can post reviews here!' : '';
+    const privateChannelWarning = channelId.startsWith('G') ? '\nObs! Looks like this is a private channel! ' +
+      'Make sure to */invite @trustpilot* to get reviews posted here!' : '';
     bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
     if (newSettings.canReply) {
       await bot.replyPrivateDelayedAsync(
