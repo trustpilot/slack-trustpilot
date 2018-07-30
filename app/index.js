@@ -4,7 +4,7 @@
 
 const TrustpilotApi = require('./trustpilot-api');
 const StorageEngine = require('./storage-engine');
-const SlackApp = require('./slackapp.js');
+const SlackApp = require('./slackapp');
 
 const run = (config, trustpilotClient, webserverExtensions) => {
   if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET) {
