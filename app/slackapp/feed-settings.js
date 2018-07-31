@@ -124,6 +124,12 @@ const handleNewFeedSettings = async (bot, message, slackapp) => {
   }
 };
 
+const handleDialogSubmission = async (bot, message, slackapp) => {
+  const { sourceMessage } = JSON.parse(message.callback_id);
+  await handleNewFeedSettings(bot, message, slackapp);
+  await showFeedSettingsIntroMessage(sourceMessage, bot);
+};
+
 const deleteFeedSettings = async (message, bot, slackapp) => {
   const { channel: channelId } = message;
   const team = bot.team_info;
@@ -154,11 +160,10 @@ const handleSettingsCommand = async (bot, message) => {
 };
 
 module.exports = {
-  getChannelFeedSettingsOrDefault,
+  handleSettingsCommand,
+  handleDialogSubmission,
   showFeedSettings,
-  showFeedSettingsIntroMessage,
-  handleNewFeedSettings,
   deleteFeedSettings,
   getTeamFeeds,
-  handleSettingsCommand,
+  getChannelFeedSettingsOrDefault,
 };

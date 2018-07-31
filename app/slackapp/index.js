@@ -142,12 +142,11 @@ const setupApp = (slackapp, config, trustpilotApi) => {
 
   slackapp.on('dialog_submission', async (bot, message) => {
     bot.dialogOk();
-    const { dialogType, sourceMessage } = JSON.parse(message.callback_id);
+    const { dialogType } = JSON.parse(message.callback_id);
     if (dialogType === 'review_reply') {
       return handleReply(bot, message);
     } else if (dialogType === 'feed_settings') {
-      await feedSettings.handleNewFeedSettings(bot, message, slackapp);
-      await feedSettings.showFeedSettingsIntroMessage(sourceMessage, bot);
+      await feedSettings.handleDialogSubmission(bot, message, slackapp);
       return true;
     } else {
       return true;
