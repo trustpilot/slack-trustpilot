@@ -1,7 +1,7 @@
 const botkit = require('botkit');
 const { promisify } = require('util');
 const { composeReviewMessage } = require('./review-message');
-const { fillInInteractiveMessage } = require('./interactive-message');
+const reviewReply = require('./review-reply');
 const feedSettings = require('./feed-settings');
 
 const setupApp = (slackapp, config, trustpilotApi) => {
@@ -60,51 +60,6 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     return true;
   };
 
-  const askForReply = (bot, message) => {
-    const dialog = bot
-      .createDialog('Reply to a review', JSON.stringify({
-        dialogType: 'review_reply',
-        originalTs: message.message_ts,
-        reviewId: message.callback_id,
-      }), 'Send')
-      .addTextarea('Your reply', 'reply');
-    bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
-      if (err) {
-        console.log(err, res);
-      }
-    });
-  };
-
-  const handleReply = async (bot, message) => {
-    const { originalTs, reviewId } = JSON.parse(message.callback_id);
-    const errorReaction = {
-      timestamp: originalTs,
-      channel: message.channel,
-      name: 'boom',
-    };
-    try {
-      await trustpilotApi.replyToReview({
-        reviewId,
-        message: message.submission.reply,
-      });
-      bot.say(fillInInteractiveMessage({
-        ['thread_ts']: originalTs,
-        channel: message.channel,
-        attachments: [
-          {
-            ['author_name']: message.raw_message.user.name,
-            text: message.submission.reply,
-            ts: message.action_ts,
-          },
-        ],
-      }));
-      bot.api.reactions.remove(errorReaction);
-    } catch (e) {
-      bot.replyPrivateDelayed(message, 'Something went wrong while sending your reply! Please try again shortly.');
-      bot.api.reactions.add(errorReaction);
-    }
-  };
-
   /*
     Entry points
   */
@@ -130,7 +85,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
         await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
           + ' from this channel.');
       } else {
-        askForReply(bot, message);
+        reviewReply.showReplyDialog(bot, message);
       }
     } else if (messageAction === 'open_feed_settings') {
       feedSettings.showFeedSettings(message, bot);
@@ -144,7 +99,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
     bot.dialogOk();
     const { dialogType } = JSON.parse(message.callback_id);
     if (dialogType === 'review_reply') {
-      return handleReply(bot, message);
+      return reviewReply.handleReply(bot, message, trustpilotApi);
     } else if (dialogType === 'feed_settings') {
       await feedSettings.handleDialogSubmission(bot, message, slackapp);
       return true;
