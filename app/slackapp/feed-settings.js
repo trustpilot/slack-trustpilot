@@ -1,18 +1,30 @@
 const { promisify } = require('util');
 const { makeInteractiveMessage } = require('./interactive-message');
 
-const getTeamFeeds = (team) => team.feeds || [{ channelId: team.incoming_webhook.channel_id, canReply: true }];
+const getTeamFeeds = (team) => {
+  if (team.feeds) {
+    return team.feeds;
+  } else if (team.incoming_webhook) {
+    return [{ channelId: team.incoming_webhook.channel_id, canReply: true }];
+  } else {
+    return [];
+  }
+};
+
 const getChannelFeedSettings = (team, targetChannelId) => {
   const feeds = getTeamFeeds(team);
   const channelSettings = feeds.find(({ channelId }) => channelId === targetChannelId);
   return channelSettings;
 };
+
 const getChannelFeedSettingsOrDefault = (team, targetChannelId) => {
   return getChannelFeedSettings(team, targetChannelId) || { canReply: false };
 };
+
 const areSettingsPresentForChannel = (team, targetChannelId) => {
   return !!getChannelFeedSettings(team, targetChannelId);
 };
+
 const upsertFeedSettings = (team, channelId, settings, slackapp) => {
   const feeds = team.feeds || [];
   // Using a Map to upsert the new settings
@@ -24,7 +36,7 @@ const upsertFeedSettings = (team, channelId, settings, slackapp) => {
   return slackapp.saveTeamAsync(team);
 };
 
-const showFeedSettingsIntroMessage = (message, bot) => {
+const showIntroMessage = (message, bot) => {
   bot.replyInteractiveAsync = bot.replyInteractiveAsync || promisify(bot.replyInteractive);
   if (areSettingsPresentForChannel(bot.team_info, message.channel)) {
     return bot.replyInteractiveAsync(
@@ -127,20 +139,16 @@ const handleNewFeedSettings = async (bot, message, slackapp) => {
 const handleDialogSubmission = async (bot, message, slackapp) => {
   const { sourceMessage } = JSON.parse(message.callback_id);
   await handleNewFeedSettings(bot, message, slackapp);
-  await showFeedSettingsIntroMessage(sourceMessage, bot);
+  await showIntroMessage(sourceMessage, bot);
 };
 
 const deleteFeedSettings = async (message, bot, slackapp) => {
   const { channel: channelId } = message;
   const team = bot.team_info;
-  const feeds = team.feeds || [];
-  // Using a Map to upsert the new settings
-  const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
-  feedsMap.delete(channelId);
-  team.feeds = [...feedsMap.values()];
+  team.feeds = (team.feeds || []).filter((f) => f.channelId !== channelId);
   slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
   await slackapp.saveTeamAsync(team);
-  showFeedSettingsIntroMessage(message, bot);
+  showIntroMessage(message, bot);
 };
 
 const handleSettingsCommand = async (bot, message) => {
@@ -152,7 +160,7 @@ const handleSettingsCommand = async (bot, message) => {
   if (message.channel_id.startsWith('D')) { // Direct message
     await bot.replyPrivateDelayedAsync(message, 'Sorry, I can only post your reviews in a proper channel');
   } else if (userOk && user.is_admin) {
-    await showFeedSettingsIntroMessage(message, bot);
+    await showIntroMessage(message, bot);
   } else {
     await bot.replyPrivateDelayedAsync(message, 'Sorry, only administrators can do that');
   }
