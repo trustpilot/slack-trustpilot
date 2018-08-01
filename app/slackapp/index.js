@@ -11,6 +11,8 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       return 'review_query';
     } else if (text === 'settings' || text === 'feed') {
       return 'feed_settings';
+    } else if (text === 'test') {
+      return 'test_feeds';
     } else {
       return null;
     }
@@ -40,6 +42,19 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       await bot.replyPrivateDelayedAsync(sourceMessage, 'Sorry, I could not find a matching review.');
     }
     return true;
+  };
+
+  const testFeeds = async (bot) => {
+    const testReview = {
+      stars: 5,
+      createdAt: new Date(),
+      title: 'Test Review',
+      text: 'This is just a test to verify the settings on your Slack channels.',
+      consumer: {
+        displayName: 'The Trustpilot Slack App',
+      },
+    };
+    slackapp.trigger('trustpilot_review_received', [testReview, bot.team_info.id]);
   };
 
   const handleReplyButton = async (bot, message) => {
@@ -77,6 +92,7 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     const commandHandlers = {
       'review_query': handleReviewQuery,
       'feed_settings': feedSettings.handleSettingsCommand,
+      'test_feeds': testFeeds,
     };
     await commandHandlers[type](bot, message);
     return true;
