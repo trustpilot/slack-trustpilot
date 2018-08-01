@@ -95,10 +95,10 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
   });
 
   /*
-    Incoming webhook plumbing
+    Custom handler : incoming review
   */
 
-  slackapp.postNewReview = async (review, teamId) => {
+  slackapp.on('trustpilot_review_received', async (review, teamId) => {
     slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
     const team = await slackapp.findTeamByIdAsync(teamId);
     const bot = slackapp.spawn(team);
@@ -124,8 +124,8 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
         slackapp.log.error(e);
       }
     });
+  });
   };
-};
 
 module.exports = (config, trustpilotApi, storage) => {
   // Fallback to jfs when no storage middleware provided
