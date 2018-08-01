@@ -4,35 +4,21 @@ const { composeReviewMessage } = require('./review-message');
 const reviewReply = require('./review-reply');
 const feedSettings = require('./feed-settings');
 
-const setupApp = (slackapp, config, trustpilotApi) => {
-  /*
-    Startup
-  */
+const setupAppHandlers = (slackapp, trustpilotApi) => {
 
-  slackapp.configureSlackApp({
-    clientId: config.SLACK_CLIENT_ID,
-    clientSecret: config.SLACK_SECRET,
-    rtm_receive_messages: false, // eslint-disable-line camelcase
-    scopes: ['bot', 'incoming-webhook', 'commands'],
-  });
+  slackapp.on('tick', () => { }); // Avoid filling the logs on each tick
 
-  slackapp.on('tick', () => { });
-
-  slackapp.on('create_bot', async (bot, config) => {
+  slackapp.on('create_bot', async (bot, botConfig) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
     slackapp.startTicking();
     bot.startPrivateConversationAsync = promisify(bot.startPrivateConversation);
 
     const convo = await bot.startPrivateConversationAsync({
-      user: config.createdBy,
+      user: botConfig.createdBy,
     });
     convo.say('I am a bot that has just joined your team');
     convo.say('You must now /invite me to a channel so that I can be of use!');
   });
-
-  /*
-    Internal workings
-  */
 
   const handleReviewQuery = async (bot, sourceMessage) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
@@ -61,7 +47,7 @@ const setupApp = (slackapp, config, trustpilotApi) => {
   };
 
   /*
-    Entry points
+    Entry points : Slash command, button clicks, dialog submissions
   */
 
   slackapp.on('slash_command', async (bot, message) => {
@@ -149,6 +135,12 @@ module.exports = (config, trustpilotApi, storage) => {
     json_file_store: './storage/', // eslint-disable-line camelcase
     retry: 2,
   });
-  setupApp(slackapp, config, trustpilotApi);
+  slackapp.configureSlackApp({
+    clientId: config.SLACK_CLIENT_ID,
+    clientSecret: config.SLACK_SECRET,
+    rtm_receive_messages: false, // eslint-disable-line camelcase
+    scopes: ['bot', 'incoming-webhook', 'commands'],
+  });
+  setupAppHandlers(slackapp, trustpilotApi);
   return slackapp;
 };
