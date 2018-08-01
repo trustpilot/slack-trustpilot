@@ -136,7 +136,7 @@ const handleNewFeedSettings = async (bot, message, slackapp) => {
   }
 };
 
-const handleDialogSubmission = async (bot, message, slackapp) => {
+const handleDialogSubmission = (slackapp) => async (bot, message) => {
   const { sourceMessage } = JSON.parse(message.callback_id);
   await handleNewFeedSettings(bot, message, slackapp);
   await showIntroMessage(sourceMessage, bot);

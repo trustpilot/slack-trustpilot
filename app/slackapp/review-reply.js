@@ -15,7 +15,7 @@ const showReplyDialog = (bot, message) => {
   });
 };
 
-const handleReply = async (bot, message, trustpilotApi) => {
+const handleReply = (trustpilotApi) => async (bot, message) => {
   const { originalTs, reviewId } = JSON.parse(message.callback_id);
   const errorReaction = {
     timestamp: originalTs,
