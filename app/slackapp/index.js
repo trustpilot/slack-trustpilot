@@ -50,15 +50,25 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     Entry points : Slash command, button clicks, dialog submissions
   */
 
+  const slashCommandType = (text) => {
+    if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
+      return 'review_query';
+    } else if (text === 'settings' || text === 'feed') {
+      return 'feed_settings';
+    } else {
+      return null;
+    }
+  };
+
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
-    if (/^[1-5] stars?$/i.test(message.text) || /^la(te)?st$/i.test(message.text)) {
-      return await handleReviewQuery(bot, message);
-    } else if (message.text === 'settings' || message.text === 'feed') {
-      return await feedSettings.handleSettingsCommand(bot, message);
-    } else {
+    const type = slashCommandType(message.text);
+    const commandHandlers = {
+      'review_query': handleReviewQuery,
+      'feed_settings': feedSettings.handleSettingsCommand,
+    };
+    await commandHandlers[type](bot, message);
       return true;
-    }
   });
 
   const handleReplyButton = async (bot, message) => {
