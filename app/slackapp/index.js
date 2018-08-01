@@ -6,19 +6,15 @@ const feedSettings = require('./feed-settings');
 
 const setupAppHandlers = (slackapp, trustpilotApi) => {
 
-  slackapp.on('tick', () => { }); // Avoid filling the logs on each tick
-
-  slackapp.on('create_bot', async (bot, botConfig) => {
-    // We're not using the RTM API so we need to tell Botkit to start processing conversations
-    slackapp.startTicking();
-    bot.startPrivateConversationAsync = promisify(bot.startPrivateConversation);
-
-    const convo = await bot.startPrivateConversationAsync({
-      user: botConfig.createdBy,
-    });
-    convo.say('I am a bot that has just joined your team');
-    convo.say('You must now /invite me to a channel so that I can be of use!');
-  });
+  const slashCommandType = (text) => {
+    if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
+      return 'review_query';
+    } else if (text === 'settings' || text === 'feed') {
+      return 'feed_settings';
+    } else {
+      return null;
+    }
+  };
 
   const handleReviewQuery = async (bot, sourceMessage) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
@@ -46,19 +42,34 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     return true;
   };
 
+  const handleReplyButton = async (bot, message) => {
+    const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
+    if (!canReply) {
+      bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
+      await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
+        + ' from this channel.');
+    } else {
+      reviewReply.showReplyDialog(bot, message);
+    }
+  };
+
+  slackapp.on('tick', () => { }); // Avoid filling the logs on each tick
+
+  slackapp.on('create_bot', async (bot, botConfig) => {
+    // We're not using the RTM API so we need to tell Botkit to start processing conversations
+    slackapp.startTicking();
+    bot.startPrivateConversationAsync = promisify(bot.startPrivateConversation);
+
+    const convo = await bot.startPrivateConversationAsync({
+      user: botConfig.createdBy,
+    });
+    convo.say('I am a bot that has just joined your team');
+    convo.say('You must now /invite me to a channel so that I can be of use!');
+  });
+
   /*
     Entry points : Slash command, button clicks, dialog submissions
   */
-
-  const slashCommandType = (text) => {
-    if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
-      return 'review_query';
-    } else if (text === 'settings' || text === 'feed') {
-      return 'feed_settings';
-    } else {
-      return null;
-    }
-  };
 
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
@@ -68,19 +79,9 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       'feed_settings': feedSettings.handleSettingsCommand,
     };
     await commandHandlers[type](bot, message);
-      return true;
+    return true;
   });
 
-  const handleReplyButton = async (bot, message) => {
-      const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
-      if (!canReply) {
-        bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
-        await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
-          + ' from this channel.');
-      } else {
-        reviewReply.showReplyDialog(bot, message);
-      }
-  };
 
   slackapp.on('interactive_message_callback', async (bot, message) => {
     bot.replyAcknowledge();
@@ -102,7 +103,7 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       'feed_settings': feedSettings.handleDialogSubmission(slackapp),
     };
     await dialogHandlers[dialogType](bot, message);
-      return true;
+    return true;
   });
 
   /*
@@ -136,7 +137,7 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       }
     });
   });
-  };
+};
 
 module.exports = (config, trustpilotApi, storage) => {
   // Fallback to jfs when no storage middleware provided
