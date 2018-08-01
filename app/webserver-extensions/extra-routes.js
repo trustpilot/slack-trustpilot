@@ -10,7 +10,7 @@ module.exports = (slackapp) => {
       }).forEach((e) => {
         e.eventData.consumer.displayName = e.eventData.consumer.name; // Massaging into expected format
         slackapp.log('Posting new review for team', req.params.teamId);
-        slackapp.postNewReview(e.eventData, req.params.teamId);
+        slackapp.trigger('trustpilot_review_received', [e.eventData, req.params.teamId]);
       });
       res.sendStatus(200);
     }
