@@ -1,5 +1,5 @@
 const { promisify } = require('util');
-const { makeInteractiveMessage } = require('./interactive-message');
+const { makeInteractiveMessage } = require('./lib/interactive-message');
 
 const getTeamFeeds = (team) => {
   if (team.feeds) {

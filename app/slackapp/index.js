@@ -1,6 +1,6 @@
 const botkit = require('botkit');
 const { promisify } = require('util');
-const { composeReviewMessage } = require('./review-message');
+const { composeReviewMessage } = require('./lib/review-message');
 const reviewReply = require('./review-reply');
 const feedSettings = require('./feed-settings');
 

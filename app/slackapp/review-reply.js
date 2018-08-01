@@ -1,4 +1,4 @@
-const { fillInInteractiveMessage } = require('./interactive-message');
+const { fillInInteractiveMessage } = require('./lib/interactive-message');
 
 const showReplyDialog = (bot, message) => {
   const dialog = bot
