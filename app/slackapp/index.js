@@ -78,8 +78,11 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     const convo = await bot.startPrivateConversationAsync({
       user: botConfig.createdBy,
     });
-    convo.say('I am a bot that has just joined your team');
-    convo.say('You must now /invite me to a channel so that I can be of use!');
+    convo.say('Hi there,');
+    convo.say('Receive and reply to reviews directly from Slack at your convenience. ' +
+      'Select the private or public channel of your choice, and use the `/trustpilot settings` ' +
+      'or `/trustpilot feed` command to get started.');
+    convo.say('Enjoy! Trustpilot');
   });
 
   /*
