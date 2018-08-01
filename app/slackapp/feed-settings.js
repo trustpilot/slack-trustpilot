@@ -79,7 +79,7 @@ const showIntroMessage = (message, bot) => {
   }
 };
 
-const showFeedSettings = (message, bot) => {
+const showFeedSettings = (bot, message) => {
   const team = bot.team_info;
   const { canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
   const sourceMessage = {
@@ -142,7 +142,7 @@ const handleDialogSubmission = async (bot, message, slackapp) => {
   await showIntroMessage(sourceMessage, bot);
 };
 
-const deleteFeedSettings = async (message, bot, slackapp) => {
+const deleteFeedSettings = (slackapp) => async (bot, message) => {
   const { channel: channelId } = message;
   const team = bot.team_info;
   team.feeds = (team.feeds || []).filter((f) => f.channelId !== channelId);

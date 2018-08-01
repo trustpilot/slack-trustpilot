@@ -61,10 +61,7 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     }
   });
 
-  slackapp.on('interactive_message_callback', async (bot, message) => {
-    bot.replyAcknowledge();
-    const messageAction = message.actions[0].value;
-    if (messageAction === 'step_1_write_reply') {
+  const handleReplyButton = async (bot, message) => {
       const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
       if (!canReply) {
         bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
@@ -73,11 +70,17 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       } else {
         reviewReply.showReplyDialog(bot, message);
       }
-    } else if (messageAction === 'open_feed_settings') {
-      feedSettings.showFeedSettings(message, bot);
-    } else if (messageAction === 'delete_feed_settings') {
-      feedSettings.deleteFeedSettings(message, bot, slackapp);
-    }
+  };
+
+  slackapp.on('interactive_message_callback', (bot, message) => {
+    bot.replyAcknowledge();
+    const action = message.actions[0].value;
+    const actionHandlers = {
+      'step_1_write_reply': handleReplyButton,
+      'open_feed_settings': feedSettings.showFeedSettings,
+      'delete_feed_settings': feedSettings.deleteFeedSettings(slackapp),
+    };
+    actionHandlers[action](bot, message);
     return true;
   });
 
