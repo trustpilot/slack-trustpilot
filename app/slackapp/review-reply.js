@@ -34,19 +34,16 @@ const showReplyDialog = (bot, message) => {
   });
 };
 
-const handleReply = (trustpilotApi) => async (bot, message) => {
-  const { originalTs, reviewId } = JSON.parse(message.callback_id);
-  const errorReaction = {
-    timestamp: originalTs,
-    channel: message.channel,
-    name: 'boom',
-  };
+const confirmReply = async (bot, message, originalTs) => {
+  // Reply confirmation can take two different looks:
+  // - if the bot is invited to the channel, and the review message is public to the channel,
+  //   we can confirm the reply by posting it to a thread beneath the review, and adding a reaction.
+  // - in all other cases, we fall back to a private message in the channel.
   try {
-    await trustpilotApi.replyToReview({
-      reviewId,
-      message: message.submission.reply,
-    });
-    bot.say(fillInInteractiveMessage({
+    // Try to add the reaction first, if the review message was private (slash command), this should fail.
+    await addReaction(bot, message.channel, originalTs, 'outbox_tray');
+    bot.sayAsync = bot.sayAsync || promisify(bot.say);
+    await bot.sayAsync(fillInInteractiveMessage({
       ['thread_ts']: originalTs,
       channel: message.channel,
       attachments: [
@@ -57,10 +54,24 @@ const handleReply = (trustpilotApi) => async (bot, message) => {
         },
       ],
     }));
-    bot.api.reactions.remove(errorReaction);
+  } catch (e) {
+    // Review message was private, or bot not in channel
+    bot.replyPrivateDelayed(message, 'Your reply was sent successfully.');
+  }
+};
+
+const handleReply = (trustpilotApi) => async (bot, message) => {
+  const { originalTs, reviewId } = JSON.parse(message.callback_id);
+  try {
+    await trustpilotApi.replyToReview({
+      reviewId,
+      message: message.submission.reply,
+    });
+    confirmReply(bot, message, originalTs);
+    removeReaction(bot, message.channel, originalTs, 'boom');
   } catch (e) {
     bot.replyPrivateDelayed(message, 'Something went wrong while sending your reply! Please try again shortly.');
-    bot.api.reactions.add(errorReaction);
+    addReaction(bot, message.channel, originalTs, 'boom');
   }
 };
 
