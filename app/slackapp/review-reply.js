@@ -1,4 +1,23 @@
+const { promisify } = require('util');
 const { fillInInteractiveMessage } = require('./lib/interactive-message');
+
+const addReaction = async (bot, channel, timestamp, name) => {
+  try {
+    bot.api.reactions.addAsync = bot.api.reactions.addAsync || promisify(bot.api.reactions.add);
+    await bot.api.reactions.addAsync({ channel, timestamp, name });
+  } catch (error) {
+    if (error === 'already_reacted') {
+      return;
+    } else {
+      throw error;
+    }
+  }
+};
+
+// This method is not symmetric to addReaction: no async/await because we don't care about errors.
+const removeReaction = (bot, channel, timestamp, name) => {
+  bot.api.reactions.remove({ channel, timestamp, name });
+};
 
 const showReplyDialog = (bot, message) => {
   const dialog = bot
