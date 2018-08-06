@@ -2,13 +2,17 @@ const { promisify } = require('util');
 const { makeInteractiveMessage } = require('./lib/interactive-message');
 
 const getTeamFeeds = (team) => {
-  if (team.feeds) {
-    return team.feeds;
-  } else if (team.incoming_webhook) {
-    return [{ channelId: team.incoming_webhook.channel_id, canReply: true }];
-  } else {
-    return [];
+  const feeds = team.feeds || [];
+  // Add in the incoming webhook settings, for backwards compatibility
+  if (team.incoming_webhook) {
+    const webhookChannelId = team.incoming_webhook.channel_id;
+    const incomingWebhookDefaults = { channelId: webhookChannelId, canReply: true };
+    const existingSettings = feeds.find((f) => f.channelId === webhookChannelId);
+    if (!existingSettings) {
+      return feeds.concat(incomingWebhookDefaults);
+    }
   }
+  return feeds;
 };
 
 const getChannelFeedSettings = (team, targetChannelId) => {
