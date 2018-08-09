@@ -149,6 +149,9 @@ const handleDialogSubmission = (slackapp) => async (bot, message) => {
 const deleteFeedSettings = (slackapp) => async (bot, message) => {
   const { channel: channelId } = message;
   const team = bot.team_info;
+  if (team.incoming_webhook && team.incoming_webhook.channel_id === channelId) {
+    team.incoming_webhook = null;
+  }
   team.feeds = (team.feeds || []).filter((f) => f.channelId !== channelId);
   slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
   await slackapp.saveTeamAsync(team);
