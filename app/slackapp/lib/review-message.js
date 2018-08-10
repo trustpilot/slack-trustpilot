@@ -13,6 +13,10 @@ const makeReviewAttachment = (review, ...partBuilders) => {
     'color': color,
     'footer': stars,
     'ts': reviewMoment.format('X'),
+    'fields': [{
+      title: 'Source',
+      value: review.referenceId ? `Reference number ${review.referenceId}` : 'Organic',
+    }],
   };
 
   return partBuilders.reduce((attachment, builder) => {
