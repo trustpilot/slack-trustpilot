@@ -15,6 +15,15 @@ const getTeamFeeds = (team) => {
   return feeds;
 };
 
+const getTeamFeedsForStarRating = (team, starRating) => {
+  const feeds = getTeamFeeds(team);
+  return feeds.filter(({ starFilter = 'all' }) => {
+    return starFilter === 'all'
+      || starFilter === 'positive' && starRating >= 4
+      || starFilter === 'negative' && starRating < 4;
+  });
+};
+
 const getChannelFeedSettings = (team, targetChannelId) => {
   const feeds = getTeamFeeds(team);
   const channelSettings = feeds.find(({ channelId }) => channelId === targetChannelId);
@@ -85,7 +94,7 @@ const showIntroMessage = (message, bot) => {
 
 const showFeedSettings = (bot, message) => {
   const team = bot.team_info;
-  const { canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
+  const { starFilter = 'all', canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
   const sourceMessage = {
     ts: message.message_ts,
     response_url: message.response_url, // eslint-disable-line camelcase
@@ -93,6 +102,16 @@ const showFeedSettings = (bot, message) => {
   };
   const dialog = bot
     .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings', sourceMessage }), 'Save')
+    .addSelect(
+      'Filter by star rating',
+      'starFilter',
+      starFilter,
+      [
+        { label: 'None - post all reviews', value: 'all' },
+        { label: 'Only post 4 and 5-star reviews', value: 'positive' },
+        { label: 'Only post reviews with 1, 2 or 3 stars', value: 'negative' },
+      ]
+    )
     .addSelect(
       'In-channel reply',
       'replyFeature',
@@ -114,13 +133,14 @@ const showFeedSettings = (bot, message) => {
 const handleNewFeedSettings = async (bot, message, slackapp) => {
   const {
     channel: channelId,
-    submission: { replyFeature },
+    submission: { starFilter, replyFeature },
   } = message;
   const team = bot.team_info;
   const businessUnitId = team.businessUnitId;
   const newSettings = {
     channelId,
     businessUnitId,
+    starFilter,
     canReply: replyFeature === 'on',
   };
   await upsertFeedSettings(team, channelId, newSettings, slackapp);
@@ -176,6 +196,6 @@ module.exports = {
   handleDialogSubmission,
   showFeedSettings,
   deleteFeedSettings,
-  getTeamFeeds,
+  getTeamFeedsForStarRating,
   getChannelFeedSettingsOrDefault,
 };
