@@ -135,7 +135,7 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     const bot = slackapp.spawn(team);
     bot.team_info = team; // eslint-disable-line camelcase
     bot.sendAsync = bot.sendAsync || promisify(bot.send);
-    const feeds = feedSettings.getTeamFeeds(team);
+    const feeds = feedSettings.getTeamFeedsForStarRating(team, review.stars);
 
     feeds.forEach(async ({ channelId, canReply }) => {
       const message = composeReviewMessage(review, { canReply });
