@@ -8,7 +8,8 @@
 */
 module.exports = require('botkit-storage-dynamodb')({
   dynamoTable: process.env.DYNAMO_TABLE,
-  dynamoRegion: process.env.AWS_DEFAULT_REGION,
-  dynamoAccessKey: process.env.AWS_ACCESS_KEY_ID,
-  dynamoAccessSecret: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_DEFAULT_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  sessionToken: process.env.AWS_SESSION_TOKEN,
 });

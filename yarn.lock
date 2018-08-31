@@ -571,11 +571,11 @@ botbuilder@^3.8.4:
     sprintf-js "^1.0.3"
     url-join "^1.1.0"
 
-botkit-storage-dynamodb@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/botkit-storage-dynamodb/-/botkit-storage-dynamodb-0.1.0.tgz#2f78a98f1a37217b40e57bed8e270c27935083af"
+botkit-storage-dynamodb@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/botkit-storage-dynamodb/-/botkit-storage-dynamodb-0.2.0.tgz#1a0f5fb1aec96fa7a69e1e7963f029489dac40f9"
   dependencies:
-    dynasty "^0.2.5"
+    dynasty "^0.3.9"
 
 botkit-storage-mongo@^1.0.4:
   version "1.0.7"
@@ -983,9 +983,9 @@ dom-walk@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/dom-walk/-/dom-walk-0.1.1.tgz#672226dc74c8f799ad35307df936aba11acd6018"
 
-dynasty@^0.2.5:
-  version "0.2.8"
-  resolved "https://registry.yarnpkg.com/dynasty/-/dynasty-0.2.8.tgz#6b42f4d60da816d090034d7ba97185f198d2bbb5"
+dynasty@^0.3.9:
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/dynasty/-/dynasty-0.3.9.tgz#98fb4a913d443c3f2e3bd9e4997c6b21e546959f"
   dependencies:
     aws-sdk "^2.5.0"
     bluebird "^2.3.11"
