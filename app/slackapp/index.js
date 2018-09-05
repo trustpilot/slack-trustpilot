@@ -129,13 +129,13 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     Custom handler : incoming review
   */
 
-  slackapp.on('trustpilot_review_received', async (review, teamId) => {
+  slackapp.on('trustpilot_review_received', async (review, teamId, businessUnitId) => {
     slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
     const team = await slackapp.findTeamByIdAsync(teamId);
     const bot = slackapp.spawn(team);
     bot.team_info = team; // eslint-disable-line camelcase
     bot.sendAsync = bot.sendAsync || promisify(bot.send);
-    const feeds = feedSettings.getTeamFeedsForStarRating(team, review.stars);
+    const feeds = feedSettings.getBusinessUnitFeedsForStarRating(team, businessUnitId, review.stars);
 
     feeds.forEach(async ({ channelId, canReply }) => {
       const message = composeReviewMessage(review, { canReply });
