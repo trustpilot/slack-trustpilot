@@ -5,8 +5,8 @@ const getTeamFeeds = (team) => {
   const feeds = team.feeds || [];
   // Add in the incoming webhook settings, for backwards compatibility
   if (team.incoming_webhook) {
-    const webhookChannelId = team.incoming_webhook.channel_id;
-    const incomingWebhookDefaults = { channelId: webhookChannelId, canReply: true };
+    const { businessUnitId, incoming_webhook: { channel_id: webhookChannelId } } = team;
+    const incomingWebhookDefaults = { businessUnitId, channelId: webhookChannelId, canReply: true };
     const existingSettings = feeds.find((f) => f.channelId === webhookChannelId);
     if (!existingSettings) {
       return feeds.concat(incomingWebhookDefaults);
