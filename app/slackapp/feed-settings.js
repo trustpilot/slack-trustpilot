@@ -5,8 +5,8 @@ const getTeamFeeds = (team) => {
   const feeds = team.feeds || [];
   // Add in the incoming webhook settings, for backwards compatibility
   if (team.incoming_webhook) {
-    const webhookChannelId = team.incoming_webhook.channel_id;
-    const incomingWebhookDefaults = { channelId: webhookChannelId, canReply: true };
+    const { businessUnitId, incoming_webhook: { channel_id: webhookChannelId } } = team;
+    const incomingWebhookDefaults = { businessUnitId, channelId: webhookChannelId, canReply: true };
     const existingSettings = feeds.find((f) => f.channelId === webhookChannelId);
     if (!existingSettings) {
       return feeds.concat(incomingWebhookDefaults);
@@ -15,12 +15,13 @@ const getTeamFeeds = (team) => {
   return feeds;
 };
 
-const getTeamFeedsForStarRating = (team, starRating) => {
+const getBusinessUnitFeedsForStarRating = (team, targetBusinessUnitId, starRating) => {
   const feeds = getTeamFeeds(team);
-  return feeds.filter(({ starFilter = 'all' }) => {
-    return starFilter === 'all'
-      || starFilter === 'positive' && starRating >= 4
-      || starFilter === 'negative' && starRating < 4;
+  return feeds.filter(({ businessUnitId, starFilter = 'all' }) => {
+    return businessUnitId === targetBusinessUnitId &&
+      (starFilter === 'all'
+        || starFilter === 'positive' && starRating >= 4
+        || starFilter === 'negative' && starRating < 4);
   });
 };
 
@@ -199,6 +200,6 @@ module.exports = {
   handleDialogSubmission,
   showFeedSettings,
   deleteFeedSettings,
-  getTeamFeedsForStarRating,
+  getBusinessUnitFeedsForStarRating,
   getChannelFeedSettingsOrDefault,
 };
