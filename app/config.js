@@ -14,4 +14,5 @@ module.exports = {
   PORT: process.env.PORT || '7142',
   API_HOST: process.env.API_HOST || 'https://api.trustpilot.com',
   ENABLE_LOCAL_TUNNEL: process.env.ENABLE_LOCAL_TUNNEL,
+  ENABLE_REVIEW_QUERIES: true,
 };

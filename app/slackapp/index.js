@@ -4,8 +4,7 @@ const { composeReviewMessage } = require('./lib/review-message');
 const reviewReply = require('./review-reply');
 const feedSettings = require('./feed-settings');
 
-const setupAppHandlers = (slackapp, trustpilotApi) => {
-
+const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
   const slashCommandType = (text) => {
     if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
       return 'review_query';
@@ -104,8 +103,9 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
   slackapp.on('slash_command', async (bot, message) => {
     bot.replyAcknowledge();
     const type = slashCommandType(message.text);
+    const noop = () => {};
     const commandHandlers = {
-      ['review_query']: handleReviewQuery,
+      ['review_query']: enableReviewQueries ? handleReviewQuery : noop,
       ['feed_settings']: feedSettings.handleSettingsCommand,
       ['test_feeds']: testFeeds,
     };
@@ -187,6 +187,6 @@ module.exports = (config, trustpilotApi, storage) => {
     rtm_receive_messages: false, // eslint-disable-line camelcase
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
-  setupAppHandlers(slackapp, trustpilotApi);
+  setupAppHandlers(slackapp, trustpilotApi, config.ENABLE_REVIEW_QUERIES);
   return slackapp;
 };
