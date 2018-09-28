@@ -21,9 +21,7 @@ const run = (config, trustpilotClient, webserverExtensions) => {
   // Set up a web server to expose oauth and webhook endpoints
   slackapp.setupWebserver(config.PORT, () => {
     // Middleware mounting and the like needs to happen before we set up the endpoints
-    const {
-      oAuthCallback,
-    } = webserverExtensions(slackapp, config);
+    const { oAuthCallback } = webserverExtensions(slackapp, config);
     slackapp.createWebhookEndpoints(slackapp.webserver, config.VERIFICATION_TOKEN);
     slackapp.createOauthEndpoints(slackapp.webserver, oAuthCallback);
   });

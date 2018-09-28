@@ -1,4 +1,4 @@
-module.exports = function (slackapp, config) {
+module.exports = function(slackapp, config) {
   /*
   As of Botkit 0.6.8, we can't guarantee that our OAuth callback will have the last write on the team
   and set the businessUnitId. Because of callback hell in the /oauth handler, the following line might

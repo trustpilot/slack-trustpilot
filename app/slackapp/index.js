@@ -30,7 +30,8 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       businessUnitId,
     });
 
-    bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
+    bot.replyPrivateDelayedAsync =
+      bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
     if (lastReview) {
       await bot.replyPrivateDelayedAsync(
         sourceMessage,
@@ -39,7 +40,10 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
         })
       );
     } else {
-      await bot.replyPrivateDelayedAsync(sourceMessage, 'Sorry, I could not find a matching review.');
+      await bot.replyPrivateDelayedAsync(
+        sourceMessage,
+        'Sorry, I could not find a matching review.'
+      );
     }
     return true;
   };
@@ -58,17 +62,23 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
   };
 
   const handleReplyButton = async (bot, message) => {
-    const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(bot.team_info, message.channel);
+    const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(
+      bot.team_info,
+      message.channel
+    );
     if (!canReply) {
-      bot.replyPublicDelayedAsync = bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
-      await bot.replyPublicDelayedAsync(message, 'Sorry, it’s no longer possible to reply to reviews'
-        + ' from this channel.');
+      bot.replyPublicDelayedAsync =
+        bot.replyPublicDelayedAsync || promisify(bot.replyPublicDelayed);
+      await bot.replyPublicDelayedAsync(
+        message,
+        'Sorry, it’s no longer possible to reply to reviews from this channel.'
+      );
     } else {
       reviewReply.showReplyDialog(bot, message);
     }
   };
 
-  slackapp.on('tick', () => { }); // Avoid filling the logs on each tick
+  slackapp.on('tick', () => {}); // Avoid filling the logs on each tick
 
   slackapp.on('create_bot', async (bot, botConfig) => {
     // We're not using the RTM API so we need to tell Botkit to start processing conversations
@@ -79,9 +89,11 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
       user: botConfig.createdBy,
     });
     convo.say('Hi there,');
-    convo.say('Receive and reply to reviews directly from Slack at your convenience. ' +
-      'Select the private or public channel of your choice, and use the `/trustpilot settings` ' +
-      'or `/trustpilot feed` command to get started.');
+    convo.say(
+      'Receive and reply to reviews directly from Slack at your convenience. ' +
+        'Select the private or public channel of your choice, and use the `/trustpilot settings` ' +
+        'or `/trustpilot feed` command to get started.'
+    );
     convo.say('Enjoy! Trustpilot');
   });
 
@@ -93,22 +105,21 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     bot.replyAcknowledge();
     const type = slashCommandType(message.text);
     const commandHandlers = {
-      'review_query': handleReviewQuery,
-      'feed_settings': feedSettings.handleSettingsCommand,
-      'test_feeds': testFeeds,
+      ['review_query']: handleReviewQuery,
+      ['feed_settings']: feedSettings.handleSettingsCommand,
+      ['test_feeds']: testFeeds,
     };
     await commandHandlers[type](bot, message);
     return true;
   });
 
-
   slackapp.on('interactive_message_callback', async (bot, message) => {
     bot.replyAcknowledge();
     const action = message.actions[0].value;
     const actionHandlers = {
-      'step_1_write_reply': handleReplyButton,
-      'open_feed_settings': feedSettings.showFeedSettings,
-      'delete_feed_settings': feedSettings.deleteFeedSettings(slackapp),
+      ['step_1_write_reply']: handleReplyButton,
+      ['open_feed_settings']: feedSettings.showFeedSettings,
+      ['delete_feed_settings']: feedSettings.deleteFeedSettings(slackapp),
     };
     await actionHandlers[action](bot, message);
     return true;
@@ -118,8 +129,8 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     bot.dialogOk();
     const { dialogType } = JSON.parse(message.callback_id);
     const dialogHandlers = {
-      'review_reply': reviewReply.handleReply(trustpilotApi),
-      'feed_settings': feedSettings.handleDialogSubmission(slackapp),
+      ['review_reply']: reviewReply.handleReply(trustpilotApi),
+      ['feed_settings']: feedSettings.handleDialogSubmission(slackapp),
     };
     await dialogHandlers[dialogType](bot, message);
     return true;
@@ -135,7 +146,11 @@ const setupAppHandlers = (slackapp, trustpilotApi) => {
     const bot = slackapp.spawn(team);
     bot.team_info = team; // eslint-disable-line camelcase
     bot.sendAsync = bot.sendAsync || promisify(bot.send);
-    const feeds = feedSettings.getBusinessUnitFeedsForStarRating(team, businessUnitId, review.stars);
+    const feeds = feedSettings.getBusinessUnitFeedsForStarRating(
+      team,
+      businessUnitId,
+      review.stars
+    );
 
     feeds.forEach(async ({ channelId, canReply }) => {
       const message = composeReviewMessage(review, { canReply });

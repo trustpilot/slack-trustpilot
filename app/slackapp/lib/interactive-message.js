@@ -13,8 +13,8 @@ const fillInConfirm = ({ title, text, ...restOfConfirm }) => {
   return {
     title,
     text,
-    'ok_text': 'Yes',
-    'dismiss_text': 'No',
+    ['ok_text']: 'Yes',
+    ['dismiss_text']: 'No',
     ...restOfConfirm,
   };
 };
@@ -34,8 +34,8 @@ const fillInAttachment = ({ text, actions, ...restOfAttachment }) => {
   return {
     text,
     actions: actions ? actions.map(fillInAction) : null,
-    'callback_id': 'default',
-    'attachment_type': 'default',
+    ['callback_id']: 'default',
+    ['attachment_type']: 'default',
     ...restOfAttachment,
   };
 };

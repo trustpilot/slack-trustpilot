@@ -5,18 +5,20 @@ const { fillInInteractiveMessage } = require('./interactive-message');
 const makeReviewAttachment = (review, ...partBuilders) => {
   const stars = _S.repeat('★', review.stars) + _S.repeat('✩', 5 - review.stars);
   const reviewMoment = moment(review.createdAt);
-  const color = (review.stars >= 4) ? 'good' : (review.stars <= 2) ? 'danger' : 'warning';
+  const color = review.stars >= 4 ? 'good' : review.stars <= 2 ? 'danger' : 'warning';
   const basicAttachment = {
-    'author_name': review.consumer.displayName,
-    'title': review.title,
-    'text': review.text,
-    'color': color,
-    'footer': stars,
-    'ts': reviewMoment.format('X'),
-    'fields': [{
-      title: 'Source',
-      value: review.referenceId ? `Reference number ${review.referenceId}` : 'Organic',
-    }],
+    ['author_name']: review.consumer.displayName,
+    title: review.title,
+    text: review.text,
+    color: color,
+    footer: stars,
+    ts: reviewMoment.format('X'),
+    fields: [
+      {
+        title: 'Source',
+        value: review.referenceId ? `Reference number ${review.referenceId}` : 'Organic',
+      },
+    ],
   };
 
   return partBuilders.reduce((attachment, builder) => {
@@ -25,16 +27,20 @@ const makeReviewAttachment = (review, ...partBuilders) => {
 };
 
 const actionsPartBuilder = (actionsMap) => (review) => {
-  const actions = [...actionsMap].filter(([, isPermitted]) => isPermitted).map(([action]) => action);
-  return actions.length ? {
-    'callback_id': review.id,
-    actions,
-  } : {};
+  const actions = [...actionsMap]
+    .filter(([, isPermitted]) => isPermitted)
+    .map(([action]) => action);
+  return actions.length
+    ? {
+        ['callback_id']: review.id,
+        actions,
+      }
+    : {};
 };
 
 const replyAction = {
-  'value': 'step_1_write_reply',
-  'text': ':writing_hand: Reply',
+  value: 'step_1_write_reply',
+  text: ':writing_hand: Reply',
 };
 
 const composeReviewMessage = (review, { canReply }) => {
@@ -42,9 +48,7 @@ const composeReviewMessage = (review, { canReply }) => {
   actionsMap.set(replyAction, canReply);
 
   return fillInInteractiveMessage({
-    'attachments': [
-      makeReviewAttachment(review, actionsPartBuilder(actionsMap)),
-    ],
+    attachments: [makeReviewAttachment(review, actionsPartBuilder(actionsMap))],
   });
 };
 

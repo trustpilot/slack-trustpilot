@@ -1,6 +1,6 @@
 const localtunnel = require('localtunnel');
 
-module.exports = function (port) {
+module.exports = function(port) {
   localtunnel(port, (err, tunnel) => {
     if (err) {
       throw err;

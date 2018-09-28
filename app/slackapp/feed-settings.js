@@ -5,8 +5,15 @@ const getTeamFeeds = (team) => {
   const feeds = team.feeds || [];
   // Add in the incoming webhook settings, for backwards compatibility
   if (team.incoming_webhook) {
-    const { businessUnitId, incoming_webhook: { channel_id: webhookChannelId } } = team;
-    const incomingWebhookDefaults = { businessUnitId, channelId: webhookChannelId, canReply: true };
+    const {
+      businessUnitId,
+      incoming_webhook: { channel_id: webhookChannelId },
+    } = team;
+    const incomingWebhookDefaults = {
+      businessUnitId,
+      channelId: webhookChannelId,
+      canReply: true,
+    };
     const existingSettings = feeds.find((f) => f.channelId === webhookChannelId);
     if (!existingSettings) {
       return feeds.concat(incomingWebhookDefaults);
@@ -18,10 +25,12 @@ const getTeamFeeds = (team) => {
 const getBusinessUnitFeedsForStarRating = (team, targetBusinessUnitId, starRating) => {
   const feeds = getTeamFeeds(team);
   return feeds.filter(({ businessUnitId, starFilter = 'all' }) => {
-    return businessUnitId === targetBusinessUnitId &&
-      (starFilter === 'all'
-        || starFilter === 'positive' && starRating >= 4
-        || starFilter === 'negative' && starRating < 4);
+    return (
+      businessUnitId === targetBusinessUnitId &&
+      (starFilter === 'all' ||
+        (starFilter === 'positive' && starRating >= 4) ||
+        (starFilter === 'negative' && starRating < 4))
+    );
   });
 };
 
@@ -102,28 +111,23 @@ const showFeedSettings = (bot, message) => {
     channel: message.channel,
   };
   const dialog = bot
-    .createDialog('Review settings', JSON.stringify({ dialogType: 'feed_settings', sourceMessage }), 'Save')
-    .addSelect(
-      'Filter by star rating',
-      'starFilter',
-      starFilter,
-      [
-        { label: 'None - post all reviews', value: 'all' },
-        { label: 'Only post 4 and 5-star reviews', value: 'positive' },
-        { label: 'Only post reviews with 1, 2 or 3 stars', value: 'negative' },
-      ]
+    .createDialog(
+      'Review settings',
+      JSON.stringify({ dialogType: 'feed_settings', sourceMessage }),
+      'Save'
     )
-    .addSelect(
-      'In-channel reply',
-      'replyFeature',
-      canReply ? 'on' : 'off',
-      [
-        { label: 'Allow users to reply to reviews', value: 'on' },
-        {
-          label: 'Do not allow users to reply to reviews', value: 'off',
-        },
-      ]
-    );
+    .addSelect('Filter by star rating', 'starFilter', starFilter, [
+      { label: 'None - post all reviews', value: 'all' },
+      { label: 'Only post 4 and 5-star reviews', value: 'positive' },
+      { label: 'Only post reviews with 1, 2 or 3 stars', value: 'negative' },
+    ])
+    .addSelect('In-channel reply', 'replyFeature', canReply ? 'on' : 'off', [
+      { label: 'Allow users to reply to reviews', value: 'on' },
+      {
+        label: 'Do not allow users to reply to reviews',
+        value: 'off',
+      },
+    ]);
   bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
     if (err) {
       console.log(err, res);
@@ -145,8 +149,9 @@ const handleNewFeedSettings = async (bot, message, slackapp) => {
     canReply: replyFeature === 'on',
   };
   await upsertFeedSettings(team, channelId, newSettings, slackapp);
-  const privateChannelWarning = channelId.startsWith('G') ? '\nJust one last thing:'
-    + ' this looks like a private channel, so *please /invite me* so I can post reviews here!' : '';
+  const privateChannelWarning = channelId.startsWith('G')
+    ? '\nJust one last thing: this looks like a private channel, so *please /invite me* so I can post reviews here!'
+    : '';
   bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
   if (newSettings.canReply) {
     await bot.replyPrivateDelayedAsync(
@@ -185,8 +190,12 @@ const handleSettingsCommand = async (bot, message) => {
     user: message.user_id,
   });
   bot.replyPrivateDelayedAsync = bot.replyPrivateDelayedAsync || promisify(bot.replyPrivateDelayed);
-  if (message.channel_id.startsWith('D')) { // Direct message
-    await bot.replyPrivateDelayedAsync(message, 'Sorry, I can only post your reviews in a proper channel');
+  if (message.channel_id.startsWith('D')) {
+    // Direct message
+    await bot.replyPrivateDelayedAsync(
+      message,
+      'Sorry, I can only post your reviews in a proper channel'
+    );
   } else if (userOk && user.is_admin) {
     await showIntroMessage(message, bot);
   } else {
