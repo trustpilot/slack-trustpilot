@@ -21,11 +21,15 @@ const removeReaction = (bot, channel, timestamp, name) => {
 
 const showReplyDialog = (bot, message) => {
   const dialog = bot
-    .createDialog('Reply to a review', JSON.stringify({
-      dialogType: 'review_reply',
-      originalTs: message.message_ts,
-      reviewId: message.callback_id,
-    }), 'Send')
+    .createDialog(
+      'Reply to a review',
+      JSON.stringify({
+        dialogType: 'review_reply',
+        originalTs: message.message_ts,
+        reviewId: message.callback_id,
+      }),
+      'Send'
+    )
     .addTextarea('Your reply', 'reply');
   bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
     if (err) {
@@ -43,17 +47,19 @@ const confirmReply = async (bot, message, originalTs) => {
     // Try to add the reaction first, if the review message was private (slash command), this should fail.
     await addReaction(bot, message.channel, originalTs, 'outbox_tray');
     bot.sayAsync = bot.sayAsync || promisify(bot.say);
-    await bot.sayAsync(fillInInteractiveMessage({
-      ['thread_ts']: originalTs,
-      channel: message.channel,
-      attachments: [
-        {
-          ['author_name']: message.raw_message.user.name,
-          text: message.submission.reply,
-          ts: message.action_ts,
-        },
-      ],
-    }));
+    await bot.sayAsync(
+      fillInInteractiveMessage({
+        ['thread_ts']: originalTs,
+        channel: message.channel,
+        attachments: [
+          {
+            ['author_name']: message.raw_message.user.name,
+            text: message.submission.reply,
+            ts: message.action_ts,
+          },
+        ],
+      })
+    );
   } catch (e) {
     // Review message was private, or bot not in channel
     bot.replyPrivateDelayed(message, 'Your reply was sent successfully.');
@@ -70,7 +76,10 @@ const handleReply = (trustpilotApi) => async (bot, message) => {
     confirmReply(bot, message, originalTs);
     removeReaction(bot, message.channel, originalTs, 'boom');
   } catch (e) {
-    bot.replyPrivateDelayed(message, 'Something went wrong while sending your reply! Please try again shortly.');
+    bot.replyPrivateDelayed(
+      message,
+      'Something went wrong while sending your reply! Please try again shortly.'
+    );
     addReaction(bot, message.channel, originalTs, 'boom');
   }
 };
