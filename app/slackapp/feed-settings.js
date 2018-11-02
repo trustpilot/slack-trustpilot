@@ -53,7 +53,7 @@ const upsertFeedSettings = (team, channelId, settings, slackapp) => {
   // Using a Map to upsert the new settings
   const feedsMap = new Map(feeds.map((f) => [f.channelId, f]));
   const oldSettings = feedsMap.get(channelId);
-  feedsMap.set(channelId, oldSettings ? { ...oldSettings, ...settings } : settings);
+  feedsMap.set(channelId, { ...oldSettings, ...settings });
   team.feeds = [...feedsMap.values()];
   slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
   return slackapp.saveTeamAsync(team);
