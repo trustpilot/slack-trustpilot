@@ -48,7 +48,7 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
   };
 
   const testFeeds = async (bot) => {
-    const testReview = {
+    const review = {
       stars: 5,
       createdAt: new Date(),
       title: 'Test Review',
@@ -57,7 +57,8 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
         displayName: 'The Trustpilot Slack App',
       },
     };
-    slackapp.trigger('trustpilot_review_received', [testReview, bot.team_info.id]);
+    const { id: teamId, businessUnitId } = bot.team_info;
+    slackapp.trigger('trustpilot_review_received', [{ review, teamId, businessUnitId }]);
   };
 
   const handleReplyButton = async (bot, message) => {
@@ -140,7 +141,7 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
     Custom handler : incoming review
   */
 
-  slackapp.on('trustpilot_review_received', async (review, teamId, businessUnitId) => {
+  slackapp.on('trustpilot_review_received', async ({ review, teamId, businessUnitId }) => {
     slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
     const team = await slackapp.findTeamByIdAsync(teamId);
     const bot = slackapp.spawn(team);
