@@ -16,7 +16,13 @@ module.exports = (slackapp) => {
         .forEach((e) => {
           e.eventData.consumer.displayName = e.eventData.consumer.name; // Massaging into expected format
           slackapp.log(`Posting new review for team ${teamId}, business unit ${businessUnitId}`);
-          slackapp.trigger('trustpilot_review_received', [e.eventData, teamId, businessUnitId]);
+          slackapp.trigger('trustpilot_review_received', [
+            {
+              review: e.eventData,
+              teamId,
+              businessUnitId,
+            },
+          ]);
         });
       res.sendStatus(200);
     }
