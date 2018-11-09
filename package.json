@@ -15,7 +15,7 @@
     "precommit": "npm run lint"
   },
   "dependencies": {
-    "botkit": "^0.6.19",
+    "botkit": "^0.6.20",
     "botkit-storage-dynamodb": "^0.2.0",
     "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",

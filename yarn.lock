@@ -961,10 +961,10 @@ botkit-studio-sdk@^1.0.8:
     promise "^8.0.2"
     request "^2.88.0"
 
-botkit@^0.6.19:
-  version "0.6.19"
-  resolved "https://registry.yarnpkg.com/botkit/-/botkit-0.6.19.tgz#15403b36a54e754d1ff8e1eac3d9655e40ee7600"
-  integrity sha512-6X2nFJD1kohTmAe/zRS9k5uba2JP8sVIEvRQr0O+gulkAD6hFQbpV9zxf05VGVigN3ZhnKA9f4eTSM2n8TILUw==
+botkit@^0.6.20:
+  version "0.6.20"
+  resolved "https://registry.yarnpkg.com/botkit/-/botkit-0.6.20.tgz#fabe96652d1ec6cc1aec5bd933da5ab8bbf47984"
+  integrity sha512-wxp0OTQk7SEU9eSqM5xsSNiZz57cA4dfiGwQ3vbpNoD+oIRAh0OEE983hiO8YxnmHiIgoNCDLiSKnCrg4IQ7sw==
   dependencies:
     async "^2.6.1"
     back "^1.0.2"
