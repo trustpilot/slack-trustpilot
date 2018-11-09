@@ -4,7 +4,7 @@ module.exports = {
   // SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID || '<Your Slack Client ID>',
   SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID || '',
   SLACK_SECRET: process.env.SLACK_SECRET || '',
-  VERIFICATION_TOKEN: process.env.VERIFICATION_TOKEN || '',
+  SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET || '',
   API_KEY: process.env.API_KEY || '',
   API_SECRET: process.env.API_SECRET || '',
   BUSINESS_USER_NAME: process.env.BUSINESS_USER_NAME || '',

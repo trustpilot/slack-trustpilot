@@ -7,9 +7,9 @@ const StorageEngine = require('./storage-engine');
 const SlackApp = require('./slackapp');
 
 const run = (config, trustpilotClient, webserverExtensions) => {
-  if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET) {
+  if (!config.SLACK_CLIENT_ID || !config.SLACK_SECRET || !config.SLACK_SIGNING_SECRET) {
     console.log(`Sorry, you need to give me this app's credentials. Please configure
-    SLACK_CLIENT_ID and SLACK_SECRET in config.js`);
+    SLACK_CLIENT_ID, SLACK_SECRET and SLACK_SIGNING_SECRET in config.js`);
 
     process.exit(-1);
   }
@@ -22,7 +22,7 @@ const run = (config, trustpilotClient, webserverExtensions) => {
   slackapp.setupWebserver(config.PORT, () => {
     // Middleware mounting and the like needs to happen before we set up the endpoints
     const { oAuthCallback } = webserverExtensions(slackapp, config);
-    slackapp.createWebhookEndpoints(slackapp.webserver, config.VERIFICATION_TOKEN);
+    slackapp.createWebhookEndpoints(slackapp.webserver);
     slackapp.createOauthEndpoints(slackapp.webserver, oAuthCallback);
   });
 };
