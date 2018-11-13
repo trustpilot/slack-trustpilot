@@ -181,10 +181,9 @@ module.exports = (config, trustpilotApi, storage) => {
     storage: storage,
     json_file_store: './storage/', // eslint-disable-line camelcase
     retry: 2,
-  });
-  slackapp.configureSlackApp({
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_SECRET,
+    clientSigningSecret: config.SLACK_SIGNING_SECRET,
     rtm_receive_messages: false, // eslint-disable-line camelcase
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });

@@ -24,11 +24,7 @@ Make sure you have valid credentials to access the Trustpilot API, i.e. your Bus
 
 ### Slack App Credentials
 
-You will have to **[create an app](https://api.slack.com/apps/new)** on your Slack domain. Once your app is created, go to "Basic Information" and grab your Client ID and Client Secret.
-
-#### Verification token
-
-You will also need to get a Verification token for Interactive Messages, to make sure that your app is receiving legitimate requests from Slack. In your app's configuration, go to the Interactive Messages section and turn on the feature. For the Request URL, just use `https://example.com/slack/receive` (yes, literally example.com), you will change this later. Once this setting is saved, go back to the Basic information section, where you should see your Verification token.
+You will have to **[create an app](https://api.slack.com/apps/new)** on your Slack domain. Once your app is created, go to "Basic Information" and grab your Client ID, Client Secret and Signing Secret.
 
 ### Configuration
 
@@ -37,18 +33,21 @@ You should now have all the information to configure this app. Just clone this r
 ```javascript
 module.exports = {
   // Minimal configuration needed
-  'SLACK_CLIENT_ID': process.env.SLACK_CLIENT_ID || 'YOUR_SLACK_CLIENT_ID',
-  'SLACK_SECRET': process.env.SLACK_SECRET || 'YOUR_SLACK_SECRET',
-  'VERIFICATION_TOKEN': process.env.VERIFICATION_TOKEN || 'YOUR_VERIFICATION_TOKEN',
-  'API_KEY': process.env.API_KEY || 'YOUR_TRUSTPILOT_API_KEY',
-  'API_SECRET': process.env.API_SECRET || 'YOUR_TRUSTPILOT_API_SECRET',
-  'BUSINESS_USER_NAME': process.env.BUSINESS_USER_NAME || 'YOUR_TRUSTPILOT_BUSINESS_USER_NAME',
-  'BUSINESS_USER_PASS': process.env.BUSINESS_USER_PASS || 'YOUR_TRUSTPILOT_BUSINESS_USER_PASS',
-  'BUSINESS_UNIT_ID': process.env.BUSINESS_UNIT_ID || 'YOUR_TRUSTPILOT_BUSINESS_UNIT_ID'
+  // Use the below environment variables or put values directly between the quotes, e.g.
+  // SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID || '<Your Slack Client ID>'
+  SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID || '',
+  SLACK_SECRET: process.env.SLACK_SECRET || '',
+  SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET || '',
+  API_KEY: process.env.API_KEY || '',
+  API_SECRET: process.env.API_SECRET || '',
+  BUSINESS_USER_NAME: process.env.BUSINESS_USER_NAME || '',
+  BUSINESS_USER_PASS: process.env.BUSINESS_USER_PASS || '',
+  BUSINESS_UNIT_ID: process.env.BUSINESS_UNIT_ID || ''
 
   //...
 };
 ```
+
 As you can see, it's also possible to define all your configuration as environment variables, if you prefer this.
 
 ### Deploy this app somewhere
@@ -70,7 +69,6 @@ Once your app is deployed, the following endpoints should be reachable:
 - In "Slash Commands", create a new command (e.g `/trustpilot`) and point it to the same endpoint as above, `https://<your.app.url>/slack/receive`
 
 You should now be able to authorize your app by visiting the login endpoint at `https://<your.app.url>/login`
-
 
 ### Tests and development: running the app locally with localtunnel
 
