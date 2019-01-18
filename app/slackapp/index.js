@@ -4,7 +4,7 @@ const { composeReviewMessage } = require('./lib/review-message');
 const reviewReply = require('./review-reply');
 const feedSettings = require('./feed-settings');
 
-const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
+const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
   const slashCommandType = (text) => {
     if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
       return 'review_query';
@@ -24,7 +24,7 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
     const businessUnitId = team.businessUnitId;
     const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(team, sourceMessage.channel);
 
-    const lastReview = await trustpilotApi.getLastUnansweredReview({
+    const lastReview = await apiClient.getLastUnansweredReview({
       stars,
       businessUnitId,
     });
@@ -130,7 +130,7 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
     bot.dialogOk();
     const { dialogType } = JSON.parse(message.callback_id);
     const dialogHandlers = {
-      ['review_reply']: reviewReply.handleReply(trustpilotApi),
+      ['review_reply']: reviewReply.handleReply(apiClient),
       ['feed_settings']: feedSettings.handleDialogSubmission(slackapp),
     };
     await dialogHandlers[dialogType](bot, message);
@@ -174,7 +174,7 @@ const setupAppHandlers = (slackapp, trustpilotApi, enableReviewQueries) => {
   });
 };
 
-module.exports = (config, trustpilotApi, storage) => {
+module.exports = (config, apiClient, storage) => {
   // Fallback to jfs when no storage middleware provided
   const slackapp = botkit.slackbot({
     debug: false,
@@ -187,6 +187,6 @@ module.exports = (config, trustpilotApi, storage) => {
     rtm_receive_messages: false, // eslint-disable-line camelcase
     scopes: ['bot', 'incoming-webhook', 'commands'],
   });
-  setupAppHandlers(slackapp, trustpilotApi, config.ENABLE_REVIEW_QUERIES);
+  setupAppHandlers(slackapp, apiClient, config.ENABLE_REVIEW_QUERIES);
   return slackapp;
 };

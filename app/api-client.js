@@ -4,7 +4,7 @@ module.exports = function(client) {
     return requestWrapper(options);
   }
 
-  class ApiBridge {
+  class ApiClient {
     async getLastUnansweredReview({ stars, businessUnitId }) {
       const data = await privateRequest({
         method: 'GET',
@@ -29,5 +29,5 @@ module.exports = function(client) {
     }
   }
 
-  return new ApiBridge();
+  return new ApiClient();
 };

@@ -66,10 +66,10 @@ const confirmReply = async (bot, message, originalTs) => {
   }
 };
 
-const handleReply = (trustpilotApi) => async (bot, message) => {
+const handleReply = (apiClient) => async (bot, message) => {
   const { originalTs, reviewId } = JSON.parse(message.callback_id);
   try {
-    await trustpilotApi.replyToReview({
+    await apiClient.replyToReview({
       reviewId,
       message: message.submission.reply,
     });

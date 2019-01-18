@@ -2,7 +2,7 @@
     Entry point of this app, sets us up and running from config and env variables
 */
 
-const TrustpilotApi = require('./trustpilot-api');
+const ApiClient = require('./api-client');
 const StorageEngine = require('./storage-engine');
 const SlackApp = require('./slackapp');
 
@@ -14,9 +14,9 @@ const run = (config, trustpilotClient, webserverExtensions) => {
     process.exit(-1);
   }
 
-  const trustpilotApi = TrustpilotApi(trustpilotClient);
+  const apiClient = ApiClient(trustpilotClient);
   const storageEngine = StorageEngine(config.BOTKIT_STORAGE_TYPE);
-  const slackapp = SlackApp(config, trustpilotApi, storageEngine);
+  const slackapp = SlackApp(config, apiClient, storageEngine);
 
   // Set up a web server to expose oauth and webhook endpoints
   slackapp.setupWebserver(config.PORT, () => {
@@ -40,8 +40,8 @@ if (require.main !== module) {
     console.error('Unhandled Rejection at:', p, 'reason:', reason);
   });
 
-  const trustpilotClient = new Trustpilot({
-    apiKey: config.API_KEY,
+  const trustpilotClient = new Trustpilot.TrustpilotApi({
+    key: config.API_KEY,
     secret: config.API_SECRET,
     username: config.BUSINESS_USER_NAME,
     password: config.BUSINESS_USER_PASS,
