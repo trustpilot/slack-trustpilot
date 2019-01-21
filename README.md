@@ -74,10 +74,10 @@ You should now be able to authorize your app by visiting the login endpoint at `
 
 If you don't want to deploy this app just yet, this repo comes with everything you need to run the code locally.
 
-After running the obligatory `yarn install`, start the app with:
+After running the obligatory `npm install`, start the app with:
 
 ```
-yarn run local
+npm run local
 ```
 
 Wait for the localtunnel.me URL to appear in the log messages. This will allow Slack to bridge with your locally running app:
