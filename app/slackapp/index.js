@@ -154,13 +154,18 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
     );
 
     feeds.forEach(async ({ channelId, canReply }) => {
-      const message = composeReviewMessage(review, { canReply });
-      message.username = bot.config.bot.name; // Confusing, but such is life
-      message.channel = channelId;
+      const message = {
+        username: bot.config.bot.name, // Confusing, but such is life
+        channel: channelId,
+        ...composeReviewMessage(review, { canReply }),
+      };
       try {
         const { ok: sentOk, ts, channel } = await bot.sendAsync(message);
         if (sentOk) {
-          slackapp.trigger('trustpilot_review_posted', [bot, { ts, channel, reviewId: review.id }]);
+          slackapp.trigger('trustpilot_review_posted', [
+            bot,
+            { businessUnitId, ts, channel, reviewId: review.id },
+          ]);
         }
       } catch (e) {
         if (e.message === 'account_inactive') {
