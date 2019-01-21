@@ -20,18 +20,19 @@ const removeReaction = (bot, channel, timestamp, name) => {
 };
 
 const showReplyDialog = (bot, message) => {
-  const dialog = bot
-    .createDialog(
-      'Reply to a review',
-      JSON.stringify({
-        dialogType: 'review_reply',
-        originalTs: message.message_ts,
-        reviewId: message.callback_id,
-      }),
-      'Send'
-    )
+  const dialogBuilder = bot
+    .createDialog('Reply to a review', 'review_reply', 'Send')
     .addTextarea('Your reply', 'reply');
-  bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
+
+  // Add a state property to the dialog object
+  const dialogData = {
+    state: JSON.stringify({
+      originalTs: message.message_ts,
+      reviewId: message.callback_id,
+    }),
+    ...dialogBuilder.asObject(),
+  };
+  bot.replyWithDialog(message, dialogData, (err, res) => {
     if (err) {
       console.log(err, res);
     }
@@ -67,7 +68,7 @@ const confirmReply = async (bot, message, originalTs) => {
 };
 
 const handleReply = (apiClient) => async (bot, message) => {
-  const { originalTs, reviewId } = JSON.parse(message.callback_id);
+  const { originalTs, reviewId } = JSON.parse(message.state);
   try {
     await apiClient.replyToReview({
       reviewId,

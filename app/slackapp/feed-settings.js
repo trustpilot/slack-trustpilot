@@ -110,12 +110,8 @@ const showFeedSettings = (bot, message) => {
     response_url: message.response_url, // eslint-disable-line camelcase
     channel: message.channel,
   };
-  const dialog = bot
-    .createDialog(
-      'Review settings',
-      JSON.stringify({ dialogType: 'feed_settings', sourceMessage }),
-      'Save'
-    )
+  const dialogBuilder = bot
+    .createDialog('Review settings', 'feed_settings', 'Save')
     .addSelect('Filter by star rating', 'starFilter', starFilter, [
       { label: 'None - post all reviews', value: 'all' },
       { label: 'Only post 4 and 5-star reviews', value: 'positive' },
@@ -128,7 +124,13 @@ const showFeedSettings = (bot, message) => {
         value: 'off',
       },
     ]);
-  bot.replyWithDialog(message, dialog.asObject(), (err, res) => {
+
+  // Add a state property to the dialog object
+  const dialogData = {
+    state: JSON.stringify({ sourceMessage }),
+    ...dialogBuilder.asObject(),
+  };
+  bot.replyWithDialog(message, dialogData, (err, res) => {
     if (err) {
       console.log(err, res);
     }
@@ -167,7 +169,7 @@ const handleNewFeedSettings = async (bot, message, slackapp) => {
 };
 
 const handleDialogSubmission = (slackapp) => async (bot, message) => {
-  const { sourceMessage } = JSON.parse(message.callback_id);
+  const { sourceMessage } = JSON.parse(message.state);
   await handleNewFeedSettings(bot, message, slackapp);
   await showIntroMessage(sourceMessage, bot);
 };

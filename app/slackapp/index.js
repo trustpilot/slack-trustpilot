@@ -128,7 +128,7 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
 
   slackapp.on('dialog_submission', async (bot, message) => {
     bot.dialogOk();
-    const { dialogType } = JSON.parse(message.callback_id);
+    const dialogType = message.callback_id;
     const dialogHandlers = {
       ['review_reply']: reviewReply.handleReply(apiClient),
       ['feed_settings']: feedSettings.handleDialogSubmission(slackapp),
