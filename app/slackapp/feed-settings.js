@@ -102,7 +102,7 @@ const showIntroMessage = (message, bot) => {
   }
 };
 
-const showFeedSettings = (bot, message) => {
+const showFeedSettings = (slackapp) => (bot, message) => {
   const team = bot.team_info;
   const { starFilter = 'all', canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
   const sourceMessage = {
@@ -135,6 +135,7 @@ const showFeedSettings = (bot, message) => {
       console.log(err, res);
     }
   });
+  slackapp.trigger('feed_settings_dialog_opened', [bot]);
 };
 
 const handleNewFeedSettings = async (bot, message, slackapp) => {
