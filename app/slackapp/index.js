@@ -75,6 +75,11 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
       );
     } else {
       reviewReply.showReplyDialog(bot, message);
+      slackapp.trigger('reply_dialog_opened', [
+        {
+          reviewId: message.callback_id,
+        },
+      ]);
     }
   };
 
