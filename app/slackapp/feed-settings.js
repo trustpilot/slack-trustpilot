@@ -181,9 +181,13 @@ const deleteFeedSettings = (slackapp) => async (bot, message) => {
   if (team.incoming_webhook && team.incoming_webhook.channel_id === channelId) {
     team.incoming_webhook = null;
   }
+  const deletedFeed = team.feeds && team.feeds.find((f) => f.channelId === channelId);
   team.feeds = (team.feeds || []).filter((f) => f.channelId !== channelId);
   slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
   await slackapp.saveTeamAsync(team);
+  if (deletedFeed) {
+    slackapp.trigger('feed_settings_deleted', [{ businessUnitId: deletedFeed.businessUnitId }]);
+  }
   showIntroMessage(message, bot);
 };
 
