@@ -102,7 +102,7 @@ const showIntroMessage = (message, bot) => {
   }
 };
 
-const showFeedSettings = (bot, message) => {
+const showFeedSettings = (slackapp) => (bot, message) => {
   const team = bot.team_info;
   const { starFilter = 'all', canReply } = getChannelFeedSettingsOrDefault(team, message.channel);
   const sourceMessage = {
@@ -135,6 +135,7 @@ const showFeedSettings = (bot, message) => {
       console.log(err, res);
     }
   });
+  slackapp.trigger('feed_settings_dialog_opened', [bot]);
 };
 
 const handleNewFeedSettings = async (bot, message, slackapp) => {
@@ -180,9 +181,13 @@ const deleteFeedSettings = (slackapp) => async (bot, message) => {
   if (team.incoming_webhook && team.incoming_webhook.channel_id === channelId) {
     team.incoming_webhook = null;
   }
+  const deletedFeed = team.feeds && team.feeds.find((f) => f.channelId === channelId);
   team.feeds = (team.feeds || []).filter((f) => f.channelId !== channelId);
   slackapp.saveTeamAsync = slackapp.saveTeamAsync || promisify(slackapp.saveTeam);
   await slackapp.saveTeamAsync(team);
+  if (deletedFeed) {
+    slackapp.trigger('feed_settings_deleted', [{ businessUnitId: deletedFeed.businessUnitId }]);
+  }
   showIntroMessage(message, bot);
 };
 

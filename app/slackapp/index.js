@@ -75,6 +75,11 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
       );
     } else {
       reviewReply.showReplyDialog(bot, message);
+      slackapp.trigger('reply_dialog_opened', [
+        {
+          reviewId: message.callback_id,
+        },
+      ]);
     }
   };
 
@@ -119,7 +124,7 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
     const action = message.actions[0].value;
     const actionHandlers = {
       ['step_1_write_reply']: handleReplyButton,
-      ['open_feed_settings']: feedSettings.showFeedSettings,
+      ['open_feed_settings']: feedSettings.showFeedSettings(slackapp),
       ['delete_feed_settings']: feedSettings.deleteFeedSettings(slackapp),
     };
     await actionHandlers[action](bot, message);
