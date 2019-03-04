@@ -2,9 +2,11 @@ const botkit = require('botkit');
 const { promisify } = require('util');
 const { composeReviewMessage } = require('./lib/review-message');
 const reviewReply = require('./review-reply');
-const feedSettings = require('./feed-settings');
+const feedSettingsLib = require('./feed-settings');
 
 const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
+  const feedSettings = feedSettingsLib(apiClient);
+
   const slashCommandType = (text) => {
     if (/^[1-5] stars?$/i.test(text) || /^la(te)?st$/i.test(text)) {
       return 'review_query';
