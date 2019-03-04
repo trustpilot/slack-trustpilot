@@ -27,6 +27,14 @@ module.exports = function(client) {
         },
       });
     }
+
+    async getBusinessUnitDisplayName(businessUnitId) {
+      const { displayName } = await privateRequest({
+        method: 'GET',
+        uri: `/v1/private/business-units/${businessUnitId}`,
+      });
+      return displayName;
+    }
   }
 
   return new ApiClient();
