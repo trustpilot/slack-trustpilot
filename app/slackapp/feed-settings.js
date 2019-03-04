@@ -159,10 +159,9 @@ module.exports = (apiClient) => {
   const handleNewFeedSettings = async (bot, message, slackapp) => {
     const {
       channel: channelId,
-      submission: { starFilter, replyFeature },
+      submission: { starFilter, replyFeature, businessUnitId },
     } = message;
     const team = bot.team_info;
-    const businessUnitId = team.businessUnitId;
     const newSettings = {
       channelId,
       businessUnitId,
