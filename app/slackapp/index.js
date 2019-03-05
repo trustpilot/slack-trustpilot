@@ -23,7 +23,7 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
     let stars = Number(sourceMessage.text.split(' ')[0]);
     stars = isNaN(stars) ? null : stars;
     const team = bot.team_info;
-    const businessUnitId = team.businessUnitId;
+    const businessUnitId = team.businessUnits[0];
     const { canReply } = feedSettings.getChannelFeedSettingsOrDefault(team, sourceMessage.channel);
 
     const lastReview = await apiClient.getLastUnansweredReview({
