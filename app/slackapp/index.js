@@ -50,17 +50,20 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
   };
 
   const testFeeds = async (bot) => {
-    const review = {
-      stars: 5,
-      createdAt: new Date(),
-      title: 'Test Review',
-      text: 'This is just a test to verify the settings on your Slack channels.',
-      consumer: {
-        displayName: 'The Trustpilot Slack App',
-      },
-    };
-    const { id: teamId, businessUnitId } = bot.team_info;
-    slackapp.trigger('trustpilot_review_received', [{ review, teamId, businessUnitId }]);
+    const { id: teamId, businessUnits } = bot.team_info;
+    businessUnits.forEach(async (businessUnitId) => {
+      const name = await apiClient.getBusinessUnitDisplayName(businessUnitId);
+      const review = {
+        stars: 5,
+        createdAt: new Date(),
+        title: `Test Review of ${name}`,
+        text: 'This is just a test to verify the settings on your Slack channels.',
+        consumer: {
+          displayName: 'The Trustpilot Slack App',
+        },
+      };
+      slackapp.trigger('trustpilot_review_received', [{ review, teamId, businessUnitId }]);
+    });
   };
 
   const handleReplyButton = async (bot, message) => {
