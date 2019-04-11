@@ -4,21 +4,25 @@ const { fillInInteractiveMessage } = require('./interactive-message');
 
 const makeReviewAttachment = (review, ...partBuilders) => {
   const stars = _S.repeat('★', review.stars) + _S.repeat('✩', 5 - review.stars);
+  const verifiedString = review.isVerified ? 'Verified' : 'Not verified';
   const reviewMoment = moment(review.createdAt);
   const color = review.stars >= 4 ? 'good' : review.stars <= 2 ? 'danger' : 'warning';
+  const fields = review.referenceId
+    ? [
+        {
+          title: 'Reference number',
+          value: review.referenceId,
+        },
+      ]
+    : [];
   const basicAttachment = {
     ['author_name']: review.consumer.displayName,
     title: review.title,
     text: review.text,
     color: color,
-    footer: stars,
+    footer: `${stars} ${verifiedString}`,
     ts: reviewMoment.format('X'),
-    fields: [
-      {
-        title: 'Source',
-        value: review.referenceId ? `Reference number ${review.referenceId}` : 'Organic',
-      },
-    ],
+    fields,
   };
 
   return partBuilders.reduce((attachment, builder) => {
