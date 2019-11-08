@@ -88,6 +88,16 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
     }
   };
 
+  const safelyFindTeam = async (teamId) => {
+    slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
+    try {
+      const team = await slackapp.findTeamByIdAsync(teamId);
+      return team;
+    } catch (error) {
+      return null;
+    }
+  };
+
   slackapp.on('tick', () => {}); // Avoid filling the logs on each tick
 
   slackapp.on('create_bot', async (bot, botConfig) => {
@@ -152,8 +162,10 @@ const setupAppHandlers = (slackapp, apiClient, enableReviewQueries) => {
   */
 
   slackapp.on('trustpilot_review_received', async ({ review, teamId, businessUnitId }) => {
-    slackapp.findTeamByIdAsync = slackapp.findTeamByIdAsync || promisify(slackapp.findTeamById);
-    const team = await slackapp.findTeamByIdAsync(teamId);
+    const team = await safelyFindTeam(teamId);
+    if (!team) {
+      return;
+    }
     const bot = slackapp.spawn(team);
     bot.team_info = team; // eslint-disable-line camelcase
     bot.sendAsync = bot.sendAsync || promisify(bot.send);

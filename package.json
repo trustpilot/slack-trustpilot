@@ -15,8 +15,8 @@
     "precommit": "npm run lint"
   },
   "dependencies": {
+    "aws-sdk": "^2.566.0",
     "botkit": "^0.7.0",
-    "botkit-storage-dynamodb": "^0.2.0",
     "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",
     "request": "^2.88.0",
