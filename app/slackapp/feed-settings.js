@@ -128,7 +128,13 @@ module.exports = (apiClient) => {
     const businessUnitValues = await getBusinessUnitSelectionValues(team.businessUnits);
 
     const dialogBuilder = bot
-      .createDialog('Review settings', 'feed_settings', 'Save', JSON.stringify({ sourceMessage }))
+      .createDialog(
+        'Review settings',
+        'feed_settings',
+        'Save',
+        [],
+        JSON.stringify({ sourceMessage })
+      )
       .addSelect('Display reviews for', 'businessUnitId', businessUnitId, businessUnitValues)
       .addSelect('Filter by star rating', 'starFilter', starFilter, [
         { label: 'None - post all reviews', value: 'all' },

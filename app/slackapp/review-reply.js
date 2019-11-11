@@ -25,6 +25,7 @@ const showReplyDialog = (bot, message) => {
       'Reply to a review',
       'review_reply',
       'Send',
+      [],
       JSON.stringify({
         originalTs: message.message_ts,
         reviewId: message.callback_id,
