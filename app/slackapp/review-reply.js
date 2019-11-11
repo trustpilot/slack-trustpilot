@@ -21,18 +21,18 @@ const removeReaction = (bot, channel, timestamp, name) => {
 
 const showReplyDialog = (bot, message) => {
   const dialogBuilder = bot
-    .createDialog('Reply to a review', 'review_reply', 'Send')
+    .createDialog(
+      'Reply to a review',
+      'review_reply',
+      'Send',
+      JSON.stringify({
+        originalTs: message.message_ts,
+        reviewId: message.callback_id,
+      })
+    )
     .addTextarea('Your reply', 'reply');
 
-  // Add a state property to the dialog object
-  const dialogData = {
-    state: JSON.stringify({
-      originalTs: message.message_ts,
-      reviewId: message.callback_id,
-    }),
-    ...dialogBuilder.asObject(),
-  };
-  bot.replyWithDialog(message, dialogData, (err, res) => {
+  bot.replyWithDialog(message, dialogBuilder.asObject(), (err, res) => {
     if (err) {
       console.log(err, res);
     }
