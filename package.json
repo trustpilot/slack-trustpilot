@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.566.0",
-    "botkit": "^0.7.0",
+    "botkit": "^0.7.5",
     "botkit-storage-mongo": "^1.0.4",
     "moment": "^2.13.0",
     "request": "^2.88.0",
